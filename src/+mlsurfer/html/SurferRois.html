@@ -1,0 +1,846 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>SurferRois</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-05-07"><meta name="DC.source" content="SurferRois.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#4">for 79 &lt; indices 11000, hemispheric symmetry may be absent</a></li><li><a href="#6">APARCINDICESANDROIS uses aparc.a2009s+aseg to generate ROIs in the patient's native space (rawavg).</a></li><li><a href="#7">Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,</a></li><li><a href="#8">last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m</a> $</a></li><li><a href="#9">Developed on Matlab 8.1.0.604 (R2013a)</a></li><li><a href="#10">$Id: prototype.m 2433 2013-05-02 07:44:43Z jjlee $</a></li><li><a href="#12">PARCELLATEIMAGE using aparc.a2009s+aseg as source of ROIs for cortical thickness and PET...</a></li><li><a href="#13">Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,</a></li><li><a href="#14">last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m</a> $</a></li><li><a href="#15">Developed on Matlab 8.1.0.604 (R2013a)</a></li><li><a href="#16">$Id: prototype.m 2433 2013-05-02 07:44:43Z jjlee $</a></li><li><a href="#18">ROISEGSTATS</a></li><li><a href="#20">MAKETHICKNESSMAP using aparc.a2009s+aseg for ROIs for cortical thickness and PET...</a></li><li><a href="#21">Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,</a></li><li><a href="#22">last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype3.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype3.m</a> $</a></li><li><a href="#23">Developed on Matlab 8.1.0.604 (R2013a)</a></li><li><a href="#24">$Id: prototype3.m 2433 2013-05-02 07:44:43Z jjlee $</a></li><li><a href="#26">MAKEVECTORS using aparc.a2009s+aseg for ROIs</a></li><li><a href="#27">Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,</a></li><li><a href="#28">last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype4.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype4.m</a> $</a></li><li><a href="#29">Developed on Matlab 8.1.0.604 (R2013a)</a></li><li><a href="#30">$Id: prototype4.m 2433 2013-05-02 07:44:43Z jjlee $</a></li></ul></div><pre class="codeinput"><span class="keyword">classdef</span> SurferRois
+</pre><pre class="codeinput"><span class="comment">	%% SURFERROIS generates freesurfer data based on user-defined ROIs</span>
+	<span class="comment">%  $Revision$</span>
+ 	<span class="comment">%  was created $Date$</span>
+ 	<span class="comment">%  by $Author$,</span>
+ 	<span class="comment">%  last modified $LastChangedDate$</span>
+ 	<span class="comment">%  and checked into repository $URL$,</span>
+ 	<span class="comment">%  developed on Matlab 8.1.0.604 (R2013a)</span>
+ 	<span class="comment">%  $Id$</span>
+ 	<span class="comment">%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad)</span>
+
+	properties (Constant)
+</pre><pre class="codeinput">        START_INDEX_CORTEX = 11000;
+        DELTA_INDEX_CORTEX = 1000;  <span class="comment">%% for indices &gt; 11000, right &gt; left</span>
+        START_INDEX_SUBCORTEX = 1;
+        DELTA_INDEX_SUBCORTEX = 39; <span class="comment">%% for indices &lt; 80, right &gt; left</span>
+</pre><h2>for 79 &lt; indices 11000, hemispheric symmetry may be absent<a name="4"></a></h2><pre class="codeinput">        ROOT = <span class="string">'/'</span>;
+        COL_HEADERS = <span class="string">'\#\s+ColHeaders\s+Index\s+SegId\s+NVoxels\s+Volume_mm3\s+StructName\s+Mean\s+StdDev\s+Min\s+Max\s+Range'</span>;
+
+        APARC_PREFIX = <span class="string">'aparc_gmonly'</span>;
+        AVER_ID = <span class="string">'fsaverage'</span>;
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+
+    properties
+        t1Fileprefix
+    <span class="keyword">end</span>
+
+    properties (Dependent)
+        aparcIndices
+        aparcOnRawavg
+        aparcRois
+        aparcWithExclLabel
+        averageSurfPath
+        csfmask
+        exclusionRoi
+        mghDir
+        sessionPath
+        subjectsDir
+        sessionSurfPath
+        sessionId
+        sessionFslPath
+        t1mask
+        wmmask
+    <span class="keyword">end</span>
+
+    methods (Static)
+        <span class="keyword">function</span> this = analysisByRois(sessPth)
+            this = mlsurfer.SurferRois();
+            this.sessionPath = sessPth;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    methods <span class="comment">%% Set/Get</span>
+        <span class="keyword">function</span> nii = get.aparcOnRawavg(this)
+            nii = this.makeInFslAsNeeded([this.APARC_PREFIX <span class="string">'_on_rawavg.nii.gz'</span>], <span class="string">'makeAparcWithExclusions'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> ind = get.aparcIndices(this)
+            assert(isnumeric(this.aparcIndices_), <span class="string">'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois'</span>);
+            assert(~isempty(this.aparcIndices_),  <span class="string">'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois'</span>);
+            ind = this.aparcIndices_;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> clls = get.aparcRois(this)
+            assert(iscell(this.aparcRois_),   <span class="string">'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois'</span>);
+            assert(~isempty(this.aparcRois_), <span class="string">'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois'</span>);
+            clls = this.aparcRois_;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> lbl = get.aparcWithExclLabel(this)
+            lbl = [this.APARC_PREFIX <span class="string">'_on_rawavg'</span>];
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> adir = get.averageSurfPath(this)
+            adir = fullfile(this.subjectsDir, this.AVER_ID, <span class="string">'surf'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.csfmask(this, obj)
+            this.csfmask_ = imcast(obj, <span class="string">'mlfourd.NIfTI'</span>);
+            this.csfmask_.fileprefix = [<span class="string">'csf_'</span> datestr(now,29)];
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> nii = get.csfmask(this)
+            nii = this.makeInFslAsNeeded(<span class="string">'csf_mask.nii.gz'</span>, <span class="string">'makeCsfmask'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> nii = get.exclusionRoi(this)
+            nii = this.t1mask &amp; this.csfmask &amp; this.wmmask;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> mdir = get.mghDir(this)
+            mdir = fullfile(this.sessionPath, <span class="string">'mri'</span>, <span class="string">''</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.subjectsDir(this, ssdir)
+            assert(lexist(ssdir, <span class="string">'dir'</span>));
+            assert(strcmp(this.ROOT, ssdir(1)));
+            this.subjectsDir_ = ssdir;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> ssdir = get.subjectsDir(this)
+            <span class="keyword">if</span> (~isempty(this.subjectsDir_))
+                ssdir = this.subjectsDir_;
+                <span class="keyword">return</span>
+            <span class="keyword">end</span>
+            ssdir = <span class="string">'/Volumes/PassportStudio2/test/np755'</span>;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.sessionSurfPath(this, sdir)
+            assert(lexist(sdir, <span class="string">'dir'</span>));
+            [this.subjectsDir, this.sessionId] = fileparts(sdir);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> sdir = get.sessionSurfPath(this)
+            sdir = fullfile(this.subjectsDir, this.sessionId, <span class="string">'surf'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.sessionId(this, sid)
+            assert(ischar(sid));
+            this.subjectId_ = sid;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> sid = get.sessionId(this)
+            sid = this.subjectId_;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> fdir = get.sessionFslPath(this)
+            fdir = fullfile(this.sessionPath, <span class="string">'fsl'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.sessionPath(this, pth)
+            assert(lexist(pth, <span class="string">'dir'</span>)); <span class="comment">% directory, not file</span>
+            [this.subjectsDir, this.sessionId] = fileparts(pth);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> pth = get.sessionPath(this)
+            pth = fullfile(this.subjectsDir, this.sessionId, <span class="string">''</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.t1mask(this, obj)
+            this.t1mask_ = imcast(obj, <span class="string">'mlfourd.NIfTI'</span>);
+            this.t1mask_.fileprefix = [<span class="string">'t1mask_'</span> datestr(now,29)];
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> nii = get.t1mask(this)
+            nii = this.makeInFslAsNeeded( <span class="keyword">...</span>
+                sprintf(<span class="string">'b%s_mask.nii.gz'</span>, this.t1Fileprefix), <span class="string">'makeT1mask'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> nii = get.wmmask(this)
+            nii = this.makeInFslAsNeeded(<span class="string">'wm_mask.nii.gz'</span>, <span class="string">'makeWmmask'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = set.wmmask(this, obj)
+            this.wmmask_ = imcast(obj, <span class="string">'mlfourd.NIfTI'</span>);
+            this.wmmask_.fileprefix = [<span class="string">'white_'</span> datestr(now,29)];
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    methods
+        <span class="keyword">function</span> makeAparcWithExclusions(this)
+            <span class="keyword">try</span>
+                aparc = this.makeInFslAsNeeded(<span class="string">'aparc_a2009s+aseg_on_rawavg.nii.gz'</span>, <span class="string">'registerAparcOnRawavg'</span>);
+                aparc = aparc .* ~this.exclusionRoi;
+                aparc.saveas(fullfile( <span class="keyword">...</span>
+                    this.sessionFslPath, filename(this.aparcWithExclLabel)));
+            <span class="keyword">catch</span> ME
+                handexcept(ME);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> makeCsfmask(this)
+            error(<span class="string">'mlsurfer:NotImplemented'</span>, <span class="string">'SurferRois.makeCsfmask'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> makeT1mask(this)
+            error(<span class="string">'mlsurfer:NotImplemented'</span>, <span class="string">'SurferRois.makeT1mask'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> makeWmmask(this)
+            error(<span class="string">'mlsurfer:NotImplemented'</span>, <span class="string">'SurferRois.makeWmmask'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> registerAparcOnRawavg(this)
+
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> [indices,rois,this] = aparcIndicesAndRois(this, noSaving)
+</pre><h2>APARCINDICESANDROIS uses aparc.a2009s+aseg to generate ROIs in the patient's native space (rawavg).<a name="6"></a></h2><pre>Requires subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
+Usage:  [indices, rois_in_cells] = obj.aparcIndicesAndRois(do_not_save)
+        ^ double vec                                       ^ bool
+                  ^ cell-array of NIfTI, labeled by roi-index</pre><h2>Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,<a name="7"></a></h2><h2>last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m</a> $<a name="8"></a></h2><h2>Developed on Matlab 8.1.0.604 (R2013a)<a name="9"></a></h2><h2>$Id: prototype.m 2433 2013-05-02 07:44:43Z jjlee $<a name="10"></a></h2><pre class="codeinput">            assert(exist(<span class="string">'noSaving'</span>,<span class="string">'var'</span>), );
+            cd(this.sessionFslPath);
+            aparc = imcast(fullfile(this.sessionFslPath, [this.APARC_PREFIX <span class="string">'_on_rawavg.nii.gz'</span>]), <span class="string">'mlfourd.NIfTI'</span>);
+            this.aparcRois_ = {};
+            this.aparcIndices_ = []; ii = 1;
+
+            fprintf(<span class="string">'\nSurferRois.aparcIndicesAndRois:  working on aparc.a2009s+aseg index '</span>);
+            <span class="keyword">for</span> sl = [1:255 11000:aparc.dipmax] <span class="comment">% 0:255, 11000:aparc.dipmax</span>
+                trues = aparc.img == sl;
+                <span class="keyword">if</span> (any(trues(:)))
+                    fprintf(<span class="string">'%i '</span>, sl);
+                    this.aparcIndices_(ii) = sl; ii = ii + 1;
+                    lbl = sprintf(<span class="string">'aparcRoi_%i'</span>, sl);
+                    this.aparcRois_{ii} = aparc.makeSimilar(trues, lbl, lbl);
+                    <span class="keyword">if</span> (~noSaving)
+                        this.aparcRois_{ii}.save; <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            rois = this.aparcRois;
+            indices = this.aparcIndices;
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% function aparcIndicesAndRois</span>
+        <span class="keyword">function</span> this = parcellateImage(this, imobj)
+</pre><h2>PARCELLATEIMAGE using aparc.a2009s+aseg as source of ROIs for cortical thickness and PET...<a name="12"></a></h2><pre>Requires subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
+Usage:  obj = obj.parcellateImage([O15]-pet-image)
+                                   ^ NIfTI or filename</pre><h2>Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,<a name="13"></a></h2><h2>last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m</a> $<a name="14"></a></h2><h2>Developed on Matlab 8.1.0.604 (R2013a)<a name="15"></a></h2><h2>$Id: prototype.m 2433 2013-05-02 07:44:43Z jjlee $<a name="16"></a></h2><pre class="codeinput">            assert(~isempty(this.aparcIndices), <span class="string">'SurferRois:parcellateImage:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois'</span>);
+            assert(~isempty(this.aparcRois),    <span class="string">'SurferRois:parcellateImage:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois'</span>);
+
+            cd(this.sessionFslPath);
+            imobj = imcast(imobj, <span class="string">'mlfourd.NIfTI'</span>);
+            imobjAparced = imobj.makeSimilar(imobj.zeros, [imobj.fileprefix <span class="string">'_aparced'</span>]);
+            <span class="keyword">for</span> r = 1:length(this.aparcIndices)
+                trues = this.aparcRois{r}.img == this.aparcIndices(r);
+                <span class="keyword">if</span> (any(trues(:)))
+                    m = mean(imobj.img(trues));
+                    imobjAparced.img(trues) = m;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            imobjAparced.save;
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% function parcellateImage</span>
+        <span class="keyword">function</span> collection = roiSegstats(this, rindices)
+</pre><h2>ROISEGSTATS<a name="18"></a></h2><pre>Usage:   collection = obj.roiSegstats(rindices)</pre><pre class="codeinput">            setenv(<span class="string">'SUBJECTS_DIR'</span>, this.subjectsDir);
+            this.sessionId   = <span class="string">'mm01-020_p7377_2009feb5'</span>;
+            T1prefix = <span class="string">'t1_005'</span>;
+            T1       = fullfile(this.subjectsDir, this.sessionId, <span class="string">'fsl'</span>, [T1prefix <span class="string">'.nii.gz'</span>]);
+            regfile  = fullfile(this.subjectSurfDir, [T1prefix <span class="string">'_to_'</span> this.AVER_ID <span class="string">'.dat'</span>]);
+            collection = containers.Map(rindices, zeros(size(rindices)));
+
+            cd(this.averageSurfPath);
+            mlbash(sprintf(<span class="string">'fslregister --s %s --mov %s --reg %s'</span>, this.AVER_ID, T1, regfile));
+
+            cd(this.sessionSurfPath);
+            hemis = { <span class="string">'lh'</span> <span class="string">'rh'</span> };
+            assert(size(rindices,1) == length(hemis));
+            <span class="keyword">for</span> h = 1:length(hemis)
+                system(sprintf( <span class="keyword">...</span>
+                    <span class="string">'mri_surf2surf --s %s --trgsubject %s --hemi %s --sval %s.thickness --tval %s --noreshape'</span>, <span class="keyword">...</span>
+                    this.sessionId, this.AVER_ID, hemis{h}, hemis{h}, this.mghThicknessFile(hemis{h}, this.AVER_ID)));
+            <span class="keyword">end</span>
+
+            cd(fullfile(this.subjectsDir, this.sessionId, <span class="string">'surf'</span>));
+            <span class="keyword">for</span> r = 1:size(rindices,2);
+                <span class="keyword">for</span> h = 1:length(hemis)
+                    roilbl  = [<span class="string">'roi_'</span> num2str(rindices(h, r))];
+                    fqroi   = fullfile(this.subjectsDir, this.sessionId, <span class="string">'fsl'</span>, [roilbl <span class="string">'.nii.gz'</span>]);
+                    segfile = fullfile(this.sessionSurfPath, [hemis{h} <span class="string">'.'</span> this.AVER_ID <span class="string">'.'</span> roilbl <span class="string">'.mgh'</span>]);
+                    <span class="keyword">if</span> (lexist(fqroi))
+                        <span class="keyword">try</span>
+                            system(sprintf( <span class="keyword">...</span>
+                                <span class="string">'mri_vol2surf --mov %s --reg %s --projdist-max 0 1 0.1 --interp nearest --hemi %s --out %s --noreshape'</span>, <span class="keyword">...</span>
+                                fqroi, regfile, hemis{h}, segfile));
+                            sumfile = fullfile(this.sessionSurfPath, [<span class="string">'segstats_'</span> hemis{h} <span class="string">'_'</span> roilbl <span class="string">'.txt'</span>]);
+                        <span class="keyword">catch</span> ME2
+                            handwarning(ME2, stderr);
+                        <span class="keyword">end</span>
+                        <span class="keyword">try</span>
+                            [~,stderr] = system(sprintf( <span class="keyword">...</span>
+                                <span class="string">'mri_segstats --seg %s --in %s --excludeid 0 --sum %s'</span>, <span class="keyword">...</span>
+                                segfile, this.mghThicknessFile(hemis{h}), sumfile));
+                            names = regexp( <span class="keyword">...</span>
+                                mlio.TextIO.textfileToString(sumfile), this.segstatsExpression,<span class="string">'names'</span>);
+                            disp(struct2str(names))
+                        <span class="keyword">catch</span> ME
+                            handwarning(ME, stderr);
+                        <span class="keyword">end</span>
+                        <span class="keyword">if</span> (~isempty(names) &amp;&amp; isfield(names, <span class="string">'mean'</span>))
+                            collection(rindices(h, r)) = str2double(names.mean); <span class="keyword">end</span>;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% function roiSegstats</span>
+
+        <span class="keyword">function</span> [thick] = makeThicknessMap(this, collection)
+</pre><h2>MAKETHICKNESSMAP using aparc.a2009s+aseg for ROIs for cortical thickness and PET...<a name="20"></a></h2><pre>Requires subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
+Usage:  aparcIndices = prototype()
+        ^ cell-array</pre><h2>Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,<a name="21"></a></h2><h2>last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype3.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype3.m</a> $<a name="22"></a></h2><h2>Developed on Matlab 8.1.0.604 (R2013a)<a name="23"></a></h2><h2>$Id: prototype3.m 2433 2013-05-02 07:44:43Z jjlee $<a name="24"></a></h2><pre class="codeinput">            cd(this.sessionFslPath);
+            import <span class="string">mlfourd.*</span>;
+            thick = NIfTI.load(<span class="string">'t1.nii.gz'</span>);
+            thick.fileprefix = [<span class="string">'thickness_on_'</span> this.APARC_PREFIX];
+            <span class="comment">%coo   = NIfTI.load('coo_f7to26_on_t1_005_gauss3p8391mm_gauss3p8391mm_gauss3p8391mm.nii.gz');</span>
+            <span class="comment">%coo.fileprefix = 'coo_aparc';</span>
+            aparc = NIfTI.load([this.APARC_PREFIX <span class="string">'_on_rawavg.nii.gz'</span>]);
+            aparc.fileprefix = [this.APARC_PREFIX <span class="string">'_on_rawavg'</span>];
+            thick = aparc.makeSimilar(zeros(aparc.size), <span class="keyword">...</span>
+                [<span class="string">'thickness_on_'</span> this.APARC_PREFIX], <span class="keyword">...</span>
+                [<span class="string">'thickness_on_'</span> this.APARC_PREFIX]);
+            thick.fileprefix = [<span class="string">'thickness_on_'</span> this.APARC_PREFIX];
+
+            <span class="keyword">for</span> sl = 1:aparc.dipmax
+                trues = aparc.img == sl;
+                <span class="keyword">if</span> (0 ~= sum(sum(sum(trues))))
+                    thick.img(trues) = collection(sl);
+                    <span class="comment">%imshow(squeeze(sum(trues,3)));</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+            thick.save;
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% function makeThicknessMap</span>
+
+        <span class="keyword">function</span> [xvec,unused_indices] = makeVectors(imobj, indices, normalize)
+</pre><h2>MAKEVECTORS using aparc.a2009s+aseg for ROIs<a name="26"></a></h2><pre>Usage:  [intensities,unused_indices] = prototype4(image, indices, normalize)
+        ^            ^ double vecs                ^ NIfTI or filename
+                       ordinal indices                            ^ double ^ scalar double</pre><h2>Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,<a name="27"></a></h2><h2>last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: <a href="file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype4.m">file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype4.m</a> $<a name="28"></a></h2><h2>Developed on Matlab 8.1.0.604 (R2013a)<a name="29"></a></h2><h2>$Id: prototype4.m 2433 2013-05-02 07:44:43Z jjlee $<a name="30"></a></h2><pre class="codeinput">            cd(this.sessionFslPath);
+            import <span class="string">mlfourd.*</span>;
+            imobj  = imcast(imobj, <span class="string">'mlfourd.NIfTI'</span>);
+            assert(isnumeric(indices));
+            <span class="keyword">if</span> (~exist(<span class="string">'normalize'</span>, <span class="string">'var'</span>))
+                normalize = 1; <span class="keyword">end</span>
+
+            aparc = NIfTI.load(<span class="string">'_on_rawavg.nii.gz'</span>);
+            wm    = NIfTI.load(<span class="string">'bin_wm_seg_on_rawavg.nii.gz'</span>);
+            cereb = NIfTI.load(<span class="string">'../../MNI152_T1_2mm_cerebellum_mask_on_t1_005.nii.gz'</span>);
+            pca   = NIfTI.load(<span class="string">'../../MNI152_T1_2mm_mask_PCA_on_t1_005.nii.gz'</span>);
+            <span class="comment">%left  = NIfTI.load('../../left_MNI_on_t1_005.nii.gz');</span>
+            <span class="comment">% sl14to46 = cereb.makeSimilar(zeros(size(cereb)), 'slices14to46', 'slices14to46');</span>
+            <span class="comment">% for sl = 14:46</span>
+            <span class="comment">%     sl14to46.img(:,:,sl) = ones(cereb.size(1), cereb.size(2));</span>
+            <span class="comment">% end</span>
+            aparc = aparc .* ~wm .* ~cereb .* ~pca;
+
+            xvec = zeros(size(indices));
+            unused_indices = [];
+            <span class="keyword">for</span> sl = 1:length(indices)
+                trues = aparc.img == indices(sl);
+                <span class="keyword">if</span> (sum(trues(:)) &gt; 32)
+                    xvec(sl) = mean(imobj.img(trues)) / normalize; <span class="comment">%% reindexing</span>
+                <span class="keyword">else</span>
+                    unused_indices = [unused_indices sl]; <span class="comment">%#ok&lt;AGROW&gt;</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% makeVectors</span>
+    <span class="keyword">end</span> <span class="comment">% methods</span>
+
+	methods <span class="comment">% (Access = 'protected')</span>
+ 		<span class="keyword">function</span> this = SurferRois(varargin)
+</pre><pre class="codeinput"><span class="comment"> 			%% SURFERROIS</span>
+ 			<span class="comment">%  Usage:  obj = SurferRois()</span>
+
+            assert(isunix);
+</pre><pre class="codeinput"> 		<span class="keyword">end</span> <span class="comment">%  ctor</span>
+    <span class="keyword">end</span>
+
+    properties (Access = <span class="string">'private'</span>)
+        aparcIndices_
+        aparcRois_
+        csfmask_
+        t1mask_
+        wmmask_
+        subjectsDir_
+        subjectId_
+    <span class="keyword">end</span>
+
+    methods (Access = <span class="string">'private'</span>)
+        <span class="keyword">function</span> nii = makeInFslAsNeeded(this, name, maker)
+            fn = fullfile(this.sessionFslPath, filename(name));
+            <span class="keyword">if</span> (~lexist(fn, <span class="string">'file'</span>))
+                assert(ismethod(this, maker));
+                this.(maker);
+            <span class="keyword">end</span>
+            nii = imcast(fn, <span class="string">'mlfourd.NIfTI'</span>);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> rgx = rgxnname(~, lbl)
+            rgx = [<span class="string">'\s+(?&lt;'</span> lbl <span class="string">'&gt;\d+\.?\d*)'</span>];
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> ssexp = segstatsExpression(this)
+            ssexp = [this.COL_HEADERS <span class="keyword">...</span>
+                rgxnname(<span class="string">'index'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'segid'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'nvoxels'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'volume_mm3'</span>) <span class="keyword">...</span>
+                <span class="string">'\s+(?&lt;structname&gt;\w+\d*)'</span> <span class="keyword">...</span>
+                rgxnname(<span class="string">'mean'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'stddev'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'min'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'max'</span>) <span class="keyword">...</span>
+                rgxnname(<span class="string">'range'</span>)];
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> fqfn = mghThicknessFile(this, hemi)
+            fqfn = fullfile(this.sessionSurfPath, [hemi <span class="string">'.thickness.'</span> this.AVER_ID <span class="string">'.mgh'</span>]);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span> <span class="comment">% private methods</span>
+
+	<span class="comment">%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput">Error using mlsurfer.SurferRois
+Error: File: /Users/jjlee/Local/src/mpackages/mlsurfer/src/+mlsurfer/SurferRois.m Line: 175 Column: 45
+Unbalanced or unexpected parenthesis or bracket.
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+classdef SurferRois
+	%% SURFERROIS generates freesurfer data based on user-defined ROIs
+	%  $Revision$
+ 	%  was created $Date$
+ 	%  by $Author$, 
+ 	%  last modified $LastChangedDate$
+ 	%  and checked into repository $URL$, 
+ 	%  developed on Matlab 8.1.0.604 (R2013a)
+ 	%  $Id$
+ 	%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad)
+
+	properties (Constant)
+        START_INDEX_CORTEX = 11000;
+        DELTA_INDEX_CORTEX = 1000;  %% for indices > 11000, right > left
+        START_INDEX_SUBCORTEX = 1;
+        DELTA_INDEX_SUBCORTEX = 39; %% for indices < 80, right > left
+                                    %% for 79 < indices 11000, hemispheric symmetry may be absent
+        ROOT = '/';
+        COL_HEADERS = '\#\s+ColHeaders\s+Index\s+SegId\s+NVoxels\s+Volume_mm3\s+StructName\s+Mean\s+StdDev\s+Min\s+Max\s+Range';
+        
+        APARC_PREFIX = 'aparc_gmonly';
+        AVER_ID = 'fsaverage';
+    end
+    
+    properties
+        t1Fileprefix
+    end
+
+    properties (Dependent)
+        aparcIndices
+        aparcOnRawavg
+        aparcRois
+        aparcWithExclLabel
+        averageSurfPath
+        csfmask
+        exclusionRoi
+        mghDir
+        sessionPath
+        subjectsDir
+        sessionSurfPath
+        sessionId
+        sessionFslPath
+        t1mask
+        wmmask
+    end
+    
+    methods (Static)
+        function this = analysisByRois(sessPth)
+            this = mlsurfer.SurferRois();
+            this.sessionPath = sessPth;
+        end
+    end
+    
+    methods %% Set/Get
+        function nii = get.aparcOnRawavg(this)
+            nii = this.makeInFslAsNeeded([this.APARC_PREFIX '_on_rawavg.nii.gz'], 'makeAparcWithExclusions');
+        end
+        function ind = get.aparcIndices(this)
+            assert(isnumeric(this.aparcIndices_), 'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois');
+            assert(~isempty(this.aparcIndices_),  'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois');
+            ind = this.aparcIndices_;
+        end
+        function clls = get.aparcRois(this)
+            assert(iscell(this.aparcRois_),   'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois');
+            assert(~isempty(this.aparcRois_), 'SurferRois:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois');
+            clls = this.aparcRois_;
+        end
+        function lbl = get.aparcWithExclLabel(this)
+            lbl = [this.APARC_PREFIX '_on_rawavg'];
+        end
+        function adir = get.averageSurfPath(this)
+            adir = fullfile(this.subjectsDir, this.AVER_ID, 'surf');
+        end
+        function this = set.csfmask(this, obj)
+            this.csfmask_ = imcast(obj, 'mlfourd.NIfTI');
+            this.csfmask_.fileprefix = ['csf_' datestr(now,29)];
+        end
+        function nii = get.csfmask(this)
+            nii = this.makeInFslAsNeeded('csf_mask.nii.gz', 'makeCsfmask');
+        end
+        function nii = get.exclusionRoi(this)
+            nii = this.t1mask & this.csfmask & this.wmmask;
+        end
+        function mdir = get.mghDir(this)
+            mdir = fullfile(this.sessionPath, 'mri', '');
+        end
+        function this = set.subjectsDir(this, ssdir)
+            assert(lexist(ssdir, 'dir'));
+            assert(strcmp(this.ROOT, ssdir(1)));
+            this.subjectsDir_ = ssdir;
+        end
+        function ssdir = get.subjectsDir(this)
+            if (~isempty(this.subjectsDir_))
+                ssdir = this.subjectsDir_;
+                return
+            end
+            ssdir = '/Volumes/PassportStudio2/test/np755';
+        end
+        function this = set.sessionSurfPath(this, sdir)
+            assert(lexist(sdir, 'dir'));
+            [this.subjectsDir, this.sessionId] = fileparts(sdir);
+        end
+        function sdir = get.sessionSurfPath(this)
+            sdir = fullfile(this.subjectsDir, this.sessionId, 'surf');
+        end
+        function this = set.sessionId(this, sid)
+            assert(ischar(sid));
+            this.subjectId_ = sid;
+        end
+        function sid = get.sessionId(this)
+            sid = this.subjectId_;
+        end
+        function fdir = get.sessionFslPath(this)
+            fdir = fullfile(this.sessionPath, 'fsl');
+        end
+        function this = set.sessionPath(this, pth)
+            assert(lexist(pth, 'dir')); % directory, not file
+            [this.subjectsDir, this.sessionId] = fileparts(pth);
+        end
+        function pth = get.sessionPath(this)
+            pth = fullfile(this.subjectsDir, this.sessionId, '');
+        end
+        function this = set.t1mask(this, obj)
+            this.t1mask_ = imcast(obj, 'mlfourd.NIfTI');
+            this.t1mask_.fileprefix = ['t1mask_' datestr(now,29)];
+        end
+        function nii = get.t1mask(this)
+            nii = this.makeInFslAsNeeded( ...
+                sprintf('b%s_mask.nii.gz', this.t1Fileprefix), 'makeT1mask');
+        end
+        function nii = get.wmmask(this)
+            nii = this.makeInFslAsNeeded('wm_mask.nii.gz', 'makeWmmask');
+        end
+        function this = set.wmmask(this, obj)
+            this.wmmask_ = imcast(obj, 'mlfourd.NIfTI');
+            this.wmmask_.fileprefix = ['white_' datestr(now,29)];
+        end
+    end
+    
+    methods       
+        function makeAparcWithExclusions(this)
+            try            
+                aparc = this.makeInFslAsNeeded('aparc_a2009s+aseg_on_rawavg.nii.gz', 'registerAparcOnRawavg');
+                aparc = aparc .* ~this.exclusionRoi;
+                aparc.saveas(fullfile( ...
+                    this.sessionFslPath, filename(this.aparcWithExclLabel)));
+            catch ME
+                handexcept(ME);
+            end
+        end
+        function makeCsfmask(this)
+            error('mlsurfer:NotImplemented', 'SurferRois.makeCsfmask');
+        end
+        function makeT1mask(this)
+            error('mlsurfer:NotImplemented', 'SurferRois.makeT1mask');
+        end
+        function makeWmmask(this)
+            error('mlsurfer:NotImplemented', 'SurferRois.makeWmmask');
+        end
+        function registerAparcOnRawavg(this)
+            
+        end
+        function [indices,rois,this] = aparcIndicesAndRois(this, noSaving)
+            %% APARCINDICESANDROIS uses aparc.a2009s+aseg to generate ROIs in the patient's native space (rawavg).
+            %  Requires subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
+            %  Usage:  [indices, rois_in_cells] = obj.aparcIndicesAndRois(do_not_save)
+            %          ^ double vec                                       ^ bool
+            %                    ^ cell-array of NIfTI, labeled by roi-index
+            
+            %% Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,
+            %% last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m $
+            %% Developed on Matlab 8.1.0.604 (R2013a)
+            %% $Id: prototype.m 2433 2013-05-02 07:44:43Z jjlee $
+            
+            assert(exist('noSaving','var'), );
+            cd(this.sessionFslPath);
+            aparc = imcast(fullfile(this.sessionFslPath, [this.APARC_PREFIX '_on_rawavg.nii.gz']), 'mlfourd.NIfTI');
+            this.aparcRois_ = {};
+            this.aparcIndices_ = []; ii = 1;
+            
+            fprintf('\nSurferRois.aparcIndicesAndRois:  working on aparc.a2009s+aseg index ');
+            for sl = [1:255 11000:aparc.dipmax] % 0:255, 11000:aparc.dipmax
+                trues = aparc.img == sl;
+                if (any(trues(:)))
+                    fprintf('%i ', sl);
+                    this.aparcIndices_(ii) = sl; ii = ii + 1;
+                    lbl = sprintf('aparcRoi_%i', sl);
+                    this.aparcRois_{ii} = aparc.makeSimilar(trues, lbl, lbl); 
+                    if (~noSaving)
+                        this.aparcRois_{ii}.save; end
+                end
+            end    
+            rois = this.aparcRois;
+            indices = this.aparcIndices;
+        end % function aparcIndicesAndRois 
+        function this = parcellateImage(this, imobj)
+            %% PARCELLATEIMAGE using aparc.a2009s+aseg as source of ROIs for cortical thickness and PET...
+            %  Requires subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
+            %  Usage:  obj = obj.parcellateImage([O15]-pet-image)
+            %                                     ^ NIfTI or filename
+            
+            %% Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,
+            %% last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype.m $
+            %% Developed on Matlab 8.1.0.604 (R2013a)
+            %% $Id: prototype.m 2433 2013-05-02 07:44:43Z jjlee $
+            
+            assert(~isempty(this.aparcIndices), 'SurferRois:parcellateImage:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois');
+            assert(~isempty(this.aparcRois),    'SurferRois:parcellateImage:  generate aparcRois and aparcIndices by first running method aparcIndicesAndRois');
+            
+            cd(this.sessionFslPath);
+            imobj = imcast(imobj, 'mlfourd.NIfTI');
+            imobjAparced = imobj.makeSimilar(imobj.zeros, [imobj.fileprefix '_aparced']);
+            for r = 1:length(this.aparcIndices)
+                trues = this.aparcRois{r}.img == this.aparcIndices(r);
+                if (any(trues(:)))
+                    m = mean(imobj.img(trues));
+                    imobjAparced.img(trues) = m;
+                end
+            end
+            imobjAparced.save;
+        end % function parcellateImage
+        function collection = roiSegstats(this, rindices)
+            %% ROISEGSTATS
+            %  Usage:   collection = obj.roiSegstats(rindices)
+            
+            setenv('SUBJECTS_DIR', this.subjectsDir);
+            this.sessionId   = 'mm01-020_p7377_2009feb5';
+            T1prefix = 't1_005';
+            T1       = fullfile(this.subjectsDir, this.sessionId, 'fsl', [T1prefix '.nii.gz']);
+            regfile  = fullfile(this.subjectSurfDir, [T1prefix '_to_' this.AVER_ID '.dat']);
+            collection = containers.Map(rindices, zeros(size(rindices)));
+            
+            cd(this.averageSurfPath);
+            mlbash(sprintf('fslregister REPLACE_WITH_DASH_DASHs %s REPLACE_WITH_DASH_DASHmov %s REPLACE_WITH_DASH_DASHreg %s', this.AVER_ID, T1, regfile));
+            
+            cd(this.sessionSurfPath);
+            hemis = { 'lh' 'rh' };
+            assert(size(rindices,1) == length(hemis));
+            for h = 1:length(hemis)
+                system(sprintf( ...
+                    'mri_surf2surf REPLACE_WITH_DASH_DASHs %s REPLACE_WITH_DASH_DASHtrgsubject %s REPLACE_WITH_DASH_DASHhemi %s REPLACE_WITH_DASH_DASHsval %s.thickness REPLACE_WITH_DASH_DASHtval %s REPLACE_WITH_DASH_DASHnoreshape', ...
+                    this.sessionId, this.AVER_ID, hemis{h}, hemis{h}, this.mghThicknessFile(hemis{h}, this.AVER_ID)));
+            end
+            
+            cd(fullfile(this.subjectsDir, this.sessionId, 'surf'));
+            for r = 1:size(rindices,2);
+                for h = 1:length(hemis)
+                    roilbl  = ['roi_' num2str(rindices(h, r))];
+                    fqroi   = fullfile(this.subjectsDir, this.sessionId, 'fsl', [roilbl '.nii.gz']);
+                    segfile = fullfile(this.sessionSurfPath, [hemis{h} '.' this.AVER_ID '.' roilbl '.mgh']);
+                    if (lexist(fqroi))
+                        try
+                            system(sprintf( ...
+                                'mri_vol2surf REPLACE_WITH_DASH_DASHmov %s REPLACE_WITH_DASH_DASHreg %s REPLACE_WITH_DASH_DASHprojdist-max 0 1 0.1 REPLACE_WITH_DASH_DASHinterp nearest REPLACE_WITH_DASH_DASHhemi %s REPLACE_WITH_DASH_DASHout %s REPLACE_WITH_DASH_DASHnoreshape', ...
+                                fqroi, regfile, hemis{h}, segfile));
+                            sumfile = fullfile(this.sessionSurfPath, ['segstats_' hemis{h} '_' roilbl '.txt']);
+                        catch ME2
+                            handwarning(ME2, stderr);
+                        end
+                        try
+                            [~,stderr] = system(sprintf( ...
+                                'mri_segstats REPLACE_WITH_DASH_DASHseg %s REPLACE_WITH_DASH_DASHin %s REPLACE_WITH_DASH_DASHexcludeid 0 REPLACE_WITH_DASH_DASHsum %s', ...
+                                segfile, this.mghThicknessFile(hemis{h}), sumfile));
+                            names = regexp( ...
+                                mlio.TextIO.textfileToString(sumfile), this.segstatsExpression,'names');
+                            disp(struct2str(names))
+                        catch ME
+                            handwarning(ME, stderr);
+                        end
+                        if (~isempty(names) && isfield(names, 'mean'))
+                            collection(rindices(h, r)) = str2double(names.mean); end;
+                    end
+                end
+            end
+        end % function roiSegstats
+        
+        function [thick] = makeThicknessMap(this, collection)
+            %% MAKETHICKNESSMAP using aparc.a2009s+aseg for ROIs for cortical thickness and PET...
+            %  Requires subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
+            %  Usage:  aparcIndices = prototype()
+            %          ^ cell-array
+            
+            %% Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,
+            %% last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype3.m $
+            %% Developed on Matlab 8.1.0.604 (R2013a)
+            %% $Id: prototype3.m 2433 2013-05-02 07:44:43Z jjlee $
+            
+            cd(this.sessionFslPath);
+            import mlfourd.*;
+            thick = NIfTI.load('t1.nii.gz');
+            thick.fileprefix = ['thickness_on_' this.APARC_PREFIX];
+            %coo   = NIfTI.load('coo_f7to26_on_t1_005_gauss3p8391mm_gauss3p8391mm_gauss3p8391mm.nii.gz');
+            %coo.fileprefix = 'coo_aparc';
+            aparc = NIfTI.load([this.APARC_PREFIX '_on_rawavg.nii.gz']);
+            aparc.fileprefix = [this.APARC_PREFIX '_on_rawavg'];
+            thick = aparc.makeSimilar(zeros(aparc.size), ...
+                ['thickness_on_' this.APARC_PREFIX], ... 
+                ['thickness_on_' this.APARC_PREFIX]);
+            thick.fileprefix = ['thickness_on_' this.APARC_PREFIX];
+            
+            for sl = 1:aparc.dipmax
+                trues = aparc.img == sl;
+                if (0 ~= sum(sum(sum(trues))))
+                    thick.img(trues) = collection(sl);
+                    %imshow(squeeze(sum(trues,3)));
+                end
+            end
+            thick.save;
+        end % function makeThicknessMap
+        
+        function [xvec,unused_indices] = makeVectors(imobj, indices, normalize)
+            %% MAKEVECTORS using aparc.a2009s+aseg for ROIs
+            %  Usage:  [intensities,unused_indices] = prototype4(image, indices, normalize)
+            %          ^            ^ double vecs                ^ NIfTI or filename
+            %                         ordinal indices                            ^ double ^ scalar double
+            
+            %% Version $Revision: 2433 $ was created $Date: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ by $Author: jjlee $,
+            %% last modified $LastChangedDate: 2013-05-02 02:44:43 -0500 (Thu, 02 May 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mfiles/trunk/prototype4.m $
+            %% Developed on Matlab 8.1.0.604 (R2013a)
+            %% $Id: prototype4.m 2433 2013-05-02 07:44:43Z jjlee $
+            
+            cd(this.sessionFslPath);
+            import mlfourd.*;
+            imobj  = imcast(imobj, 'mlfourd.NIfTI');
+            assert(isnumeric(indices));
+            if (~exist('normalize', 'var'))
+                normalize = 1; end
+            
+            aparc = NIfTI.load('_on_rawavg.nii.gz');
+            wm    = NIfTI.load('bin_wm_seg_on_rawavg.nii.gz');
+            cereb = NIfTI.load('../../MNI152_T1_2mm_cerebellum_mask_on_t1_005.nii.gz');
+            pca   = NIfTI.load('../../MNI152_T1_2mm_mask_PCA_on_t1_005.nii.gz');
+            %left  = NIfTI.load('../../left_MNI_on_t1_005.nii.gz');
+            % sl14to46 = cereb.makeSimilar(zeros(size(cereb)), 'slices14to46', 'slices14to46');
+            % for sl = 14:46
+            %     sl14to46.img(:,:,sl) = ones(cereb.size(1), cereb.size(2));
+            % end
+            aparc = aparc .* ~wm .* ~cereb .* ~pca;
+            
+            xvec = zeros(size(indices));
+            unused_indices = [];
+            for sl = 1:length(indices)
+                trues = aparc.img == indices(sl);
+                if (sum(trues(:)) > 32)
+                    xvec(sl) = mean(imobj.img(trues)) / normalize; %% reindexing
+                else
+                    unused_indices = [unused_indices sl]; %#ok<AGROW>
+                end
+            end
+        end % makeVectors
+    end % methods
+    
+	methods % (Access = 'protected')
+ 		function this = SurferRois(varargin) 
+ 			%% SURFERROIS 
+ 			%  Usage:  obj = SurferRois() 
+            
+            assert(isunix);
+ 		end %  ctor 
+    end 
+    
+    properties (Access = 'private')
+        aparcIndices_
+        aparcRois_
+        csfmask_
+        t1mask_
+        wmmask_
+        subjectsDir_
+        subjectId_
+    end
+    
+    methods (Access = 'private') 
+        function nii = makeInFslAsNeeded(this, name, maker)
+            fn = fullfile(this.sessionFslPath, filename(name));
+            if (~lexist(fn, 'file'))
+                assert(ismethod(this, maker));
+                this.(maker); 
+            end
+            nii = imcast(fn, 'mlfourd.NIfTI');
+        end
+        function rgx = rgxnname(~, lbl)
+            rgx = ['\s+(?<' lbl '>\d+\.?\d*)'];
+        end
+        function ssexp = segstatsExpression(this)        
+            ssexp = [this.COL_HEADERS ...
+                rgxnname('index') ...
+                rgxnname('segid') ...
+                rgxnname('nvoxels') ...
+                rgxnname('volume_mm3') ...
+                '\s+(?<structname>\w+\d*)' ...
+                rgxnname('mean') ...
+                rgxnname('stddev') ...
+                rgxnname('min') ...
+                rgxnname('max') ...
+                rgxnname('range')];
+        end
+        function fqfn = mghThicknessFile(this, hemi)
+            fqfn = fullfile(this.sessionSurfPath, [hemi '.thickness.' this.AVER_ID '.mgh']);
+        end
+    end % private methods
+
+	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
+end
+
+
+##### SOURCE END #####
+--></body></html>

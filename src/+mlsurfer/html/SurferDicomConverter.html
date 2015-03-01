@@ -1,0 +1,558 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>SurferDicomConverter</title><meta name="generator" content="MATLAB 7.13"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-03-06"><meta name="DC.source" content="SurferDicomConverter.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">SURFERDICOMCONVERTER is a concrete strategy for interfaces DicomConverter, ModalityConverter;</a></li><li><a href="#3">UNPACKFROM</a></li><li><a href="#5">FIXORIENTSFROM</a></li><li><a href="#7">SCANDICOM is a facade for unpacksdcmdir -scanonly</a></li><li><a href="#9">DICOMQUERY</a></li><li><a href="#11">DICOM2STRUCTINFO</a></li><li><a href="#13">STRUCTINFO2UNPACKINFO</a></li><li><a href="#15">SURFERDICOMCONVERTER</a></li><li><a href="#17">UNPACKDICOM is a facade for unpacksdcmdir -fsfast</a></li><li><a href="#19">PARSEINFOFILE</a></li><li><a href="#21">PARSEINFOCELL</a></li><li><a href="#23">PARSEINFOSTRING</a></li></ul></div><pre class="codeinput"><span class="keyword">classdef</span> SurferDicomConverter &lt; mlfourd.DicomConverter
+</pre><h2>SURFERDICOMCONVERTER is a concrete strategy for interfaces DicomConverter, ModalityConverter;<a name="2"></a></h2><pre class="codeinput">    <span class="comment">%                          a facade for freesurfer commands</span>
+    <span class="comment">%  Version $Revision$ was created $Date$ by $Author$,</span>
+ 	<span class="comment">%  last modified $LastChangedDate$ and checked into svn repository $URL$</span>
+ 	<span class="comment">%  Developed on Matlab 7.13.0.564 (R2011b)</span>
+ 	<span class="comment">%  $Id$</span>
+ 	<span class="comment">%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad)</span>
+
+    properties (Constant)
+        <span class="comment">% for construction of structInfo</span>
+        INFO_EXPRESSION = <span class="keyword">...</span>
+<span class="string">'(?&lt;index&gt;\d+)\s+(?&lt;seq_type&gt;\w+)\s+(?&lt;status&gt;\w+)\s+(?&lt;dim1&gt;\d+)\s+(?&lt;dim2&gt;\d+)\s+(?&lt;dim3&gt;\d+)\s+(?&lt;dim4&gt;\d+)\s+(?&lt;siemens&gt;\S+)'</span>;
+        SCAN_INFO = <span class="string">'scan.info'</span>;
+    <span class="keyword">end</span>
+
+    properties
+        unpackFolders = {<span class="string">'unpack'</span>};
+    <span class="keyword">end</span>
+
+    properties (SetAccess = <span class="string">'protected'</span>)
+        orients2fix   = struct(<span class="string">'img_type'</span>, { <span class="string">'ase'</span> }, <span class="string">'orientation'</span>, { <span class="string">'y'</span> });
+    <span class="keyword">end</span>
+
+    methods (Static)
+
+        <span class="keyword">function</span> unpackFrom(mrpth)
+</pre><h2>UNPACKFROM<a name="3"></a></h2><pre>Usage:   obj.unpackFrom(MR_path) % e.g., Trio</pre><pre class="codeinput">            import <span class="string">mlfourd.*</span> <span class="string">mlsurfer.*</span>;
+            <span class="keyword">if</span> (~lexist(mrpth, <span class="string">'dir'</span>));
+                warning(<span class="string">'mlfourd:IOErr'</span>, <span class="string">'could not find %s\n'</span>, mrpth);
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+            dcmpths = cellfun(@(x) fullfile(mrpth, x, <span class="string">''</span>), DicomConverter.dcmFolders, <span class="string">'UniformOutput'</span>, false);
+            <span class="keyword">for</span> d = 1:length(dcmpths)
+                <span class="keyword">if</span> (lexist(dcmpths{d}))
+                    <span class="keyword">try</span>
+                        this = SurferDicomConverter(dcmpths{d});
+                        this.unpack( <span class="keyword">...</span>
+                            SurferDicomConverter.findsubpath(mrpth, NamingRegistry.instance.sessionFolderPrefix));
+                    <span class="keyword">catch</span> ME
+                        handwarning(ME, <span class="string">'unpackFrom:  skipping %s\n'</span>, dcmpths{d});
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% static unpackFrom</span>
+        <span class="keyword">function</span> fixOrientsFrom(fslpth, o2fix) <span class="comment">%#ok&lt;INUSD&gt;</span>
+</pre><h2>FIXORIENTSFROM<a name="5"></a></h2><pre>Usage:  obj.fixOrientsFrom(fsl_path[, orients2fix]);
+                                      ^ struct; cf. ModalityConverter</pre><pre class="codeinput">            import <span class="string">mlfourd.*</span>;
+            assert(lexist(fslpth, <span class="string">'dir'</span>));
+            this = SurferDicomConverter(fslpth);
+            <span class="keyword">if</span> (~exist(<span class="string">'o2fix'</span>, <span class="string">'var'</span>)); o2fix = this.orients2fix; <span class="keyword">end</span> <span class="comment">%#ok&lt;NASGU&gt;</span>
+            this.fixOrientKnown(fslpth, this.orients2fix);
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% static fixOrientsFrom</span>
+        <span class="keyword">function</span> structInfo   = infoFile2structInfo(fil)
+            structInfo = mlsurfer.SurferDicomConverter.parseInfoCell( <span class="keyword">...</span>
+                             mlfourd.FilesystemRegistry.textfileToCell(fil));
+        <span class="keyword">end</span> <span class="comment">% static infoFile2structInfo</span>
+        <span class="keyword">function</span> [s,r]        = scanDicom(dcmdir, targdir)
+</pre><h2>SCANDICOM is a facade for unpacksdcmdir -scanonly<a name="7"></a></h2><pre class="codeinput">            import <span class="string">mlfourd.*</span> <span class="string">mlsurfer.*</span>;
+            names     = NamingRegistry.updateDicomUnpackPaths(dcmdir, targdir);
+            infofile  = fullfile(names.unpackPath, SurferDicomConverter.SCAN_INFO);
+            <span class="keyword">if</span> (lexist(infofile, <span class="string">'file'</span>))
+                s = 0; r = cell2str( <span class="keyword">...</span>
+                               mlfourd.FilesystemRegistry.textfileToCell(fil), <span class="string">'t'</span>);
+            <span class="keyword">else</span>
+                [s,r] = mlbash([<span class="string">'unpacksdcmdir -src '</span> names.dicomPath <span class="string">' -targ '</span> names.unpackPath <span class="string">' -scanonly '</span> infofile]);
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+    <span class="keyword">end</span> <span class="comment">% static methods</span>
+
+	methods
+ 		<span class="comment">% N.B. (Static, Abstract, Access='', Hidden, Sealed)</span>
+
+        <span class="keyword">function</span>                rename(this, unpackPth, fslPth)
+            <span class="comment">% RENAME</span>
+
+            import <span class="string">mlfourd.*</span>;
+            unpacked = DirTool(unpackPth);
+            FilesystemRegistry.ensureCompletePath(fslPth);
+            <span class="keyword">for</span> d = 1:length(unpacked.dns)
+                fslName = this.namereg_.fslName(unpacked.dns{d});
+                series  = DirTool(fullfile(unpackPth, unpacked.dns{d}, <span class="string">''</span>));
+                <span class="keyword">for</span> s = 1:length(series.dns)
+                    niftis = DirTool(fullfile(unpackPth, unpacked.dns{d}, series.dns{s}, <span class="string">'*.nii'</span>));
+                    <span class="keyword">for</span> n = 1:length(niftis.fqfns)
+                        copyfile(niftis.fqfns{n}, <span class="keyword">...</span>
+                                 fullfile(fslPth, [fslName <span class="string">'_'</span> niftis.fns{n}]), <span class="string">'f'</span>);
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span> <span class="comment">% rename</span>
+        <span class="keyword">function</span> structInfo   = dicomQuery(this, dcmPth, targPth)
+</pre><h2>DICOMQUERY<a name="9"></a></h2><pre class="codeinput">            <span class="comment">%  Usage:  structInfo = obj.dicomQuery([dicom_path, target_path])</span>
+            <span class="comment">%          ^ struct-array for session, one struct per series;</span>
+            <span class="comment">%            fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens</span>
+
+            import <span class="string">mlsurfer.*</span>;
+            <span class="keyword">if</span> ( exist(<span class="string">'dcmPth'</span>,  <span class="string">'var'</span>)); this.dicomPath  = dcmPth;  <span class="keyword">end</span>
+            <span class="keyword">if</span> ( exist(<span class="string">'targPth'</span>, <span class="string">'var'</span>)); this.unpackPath = targPth; <span class="keyword">end</span>
+            infofile = fullfile(this.unpackPath, this.SCAN_INFO);
+            <span class="keyword">if</span> (lexist(infofile, <span class="string">'file'</span>))
+                structInfo = SurferDicomConverter.infoFile2structInfo(infofile);
+            <span class="keyword">else</span>
+                structInfo = this.dicoms2structInfo;
+            <span class="keyword">end</span>
+</pre><pre class="codeinput"> 		<span class="keyword">end</span> <span class="comment">% dicomQuery</span>
+        <span class="keyword">function</span> structInfo   = dicoms2structInfo(this)
+</pre><h2>DICOM2STRUCTINFO<a name="11"></a></h2><pre class="codeinput">            import <span class="string">mlsurfer.*</span>;
+            [s,r]      = SurferDicomConverter.scanDicom(this.dicomPath, this.unpackPath);
+            assert(0 == s);
+            structInfo = SurferDicomConverter.parseInfoString(r);
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% dicoms2structInfo</span>
+        <span class="keyword">function</span> unpackInfo   = structInfo2unpackInfo(this, structInfo)
+</pre><h2>STRUCTINFO2UNPACKINFO<a name="13"></a></h2><pre>Usage:  unpackInfo = obj.structInfo2unpackInfo(structInfo)
+                                    ^ cf. dicomQuery
+        ^ struct-array for session, one struct per series
+          fields:   index, seq_tuype, ext, name, dicom_path, target_path</pre><pre class="codeinput">            import <span class="string">mlsurfer.*</span> <span class="string">mlfourd.*</span>;
+            n       = 0;
+            unpackInfo = struct([]);
+            <span class="keyword">for</span> s = 1:length(structInfo)
+                n = n + 1;
+                unpackInfo(n).index       = structInfo(s).index;
+                unpackInfo(n).seq_type    = structInfo(s).seq_type;
+                unpackInfo(n).ext         = <span class="string">'nii'</span>;
+                unpackInfo(n).name        = sprintf(<span class="string">'%03u.%s'</span>, unpackInfo(n).index, unpackInfo(n).ext);
+                unpackInfo(n).dicom_path  = this.dicomPath;
+                unpackInfo(n).target_path = this.unpackPath;
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span> <span class="comment">% structInfo2unpackInfo</span>
+        <span class="keyword">function</span> [str, degen] = listUniqueInfo(this)
+            import <span class="string">mlfourd.*</span>;
+             dc          = DicomSession.createFromPaths(this.dicomPath);
+            [str, degen] = dc.listUniqueInfo(<span class="string">'seq_type'</span>);
+        <span class="keyword">end</span> <span class="comment">% listUniqueInfo</span>
+        <span class="keyword">function</span> [str, degen] = listUniqueInfos(this)
+            import <span class="string">mlfourd.*</span>;
+             dc          = DicomComposite.createFromPaths(this.studyPath);
+            [str, degen] = dc.listUniqueInfo(<span class="string">'seq_type'</span>);
+        <span class="keyword">end</span> <span class="comment">% listUniqueInfos</span>
+
+ 		<span class="keyword">function</span> this         = SurferDicomConverter(varargin)
+</pre><h2>SURFERDICOMCONVERTER<a name="15"></a></h2><pre>Usage:  cvert = SurferDicomConverter(dicom_path, unpack_path)</pre><pre class="codeinput">            this = this@mlfourd.DicomConverter(varargin{:});
+</pre><pre class="codeinput"> 		<span class="keyword">end</span> <span class="comment">% SurferDicomConverter (ctor)</span>
+    <span class="keyword">end</span> <span class="comment">% methods</span>
+
+    methods (Static, Access = <span class="string">'protected'</span>)
+        <span class="comment">% Direct calls to Freesurfer commands</span>
+
+        <span class="keyword">function</span>  cal         = unpackDicom(dcmdir, targdir, unpackInfo)
+</pre><h2>UNPACKDICOM is a facade for unpacksdcmdir -fsfast<a name="17"></a></h2><pre>Usage:  cal = SurferDicomConverter.unpackDicom(dcmdir, targdir, unpackInfo)
+        ^ surfer stdout embedded in CellArrayList
+                                      unpackInfo is a struct-array ^
+                                      fields:  index, seq_type, ext, name
+                                      e.g.,    18,    mprage,   mgz, 001.mgz</pre><pre class="codeinput">            assert(isstruct(unpackInfo) &amp;&amp; ~isempty(unpackInfo));
+            names = mlfourd.NamingRegistry.updateDicomUnpackPaths(dcmdir, targdir);
+            cal   = mlpatterns.CellArrayList;
+            <span class="keyword">for</span> n = 1:length(unpackInfo) <span class="comment">%#ok&lt;*FORFLG&gt;</span>
+
+                <span class="keyword">try</span>
+                    assert(isnumeric(unpackInfo(n).index   ) &amp;&amp; ~isempty(unpackInfo(n).index));
+                    assert(   ischar(unpackInfo(n).seq_type) &amp;&amp; ~isempty(unpackInfo(n).seq_type));
+                    assert(   ischar(unpackInfo(n).ext     ) &amp;&amp; ~isempty(unpackInfo(n).ext));
+                    assert(   ischar(unpackInfo(n).name    ) &amp;&amp; ~isempty(unpackInfo(n).name));
+                    niiList = sprintf(<span class="string">' -run %i %s %s %s '</span>, <span class="keyword">...</span>
+                              unpackInfo(n).index, unpackInfo(n).seq_type, unpackInfo(n).ext, unpackInfo(n).name);
+                    [~,r_n] = mlbash([<span class="string">'unpacksdcmdir -src '</span> names.dicomPath <span class="string">' -targ '</span> names.unpackPath <span class="string">' -fsfast '</span> niiList]);
+                    cal.add(r_n);
+                <span class="keyword">catch</span> ME
+                    handexcept(ME);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+        <span class="keyword">function</span>  structInfo  = parseInfoFile(fqfn)
+</pre><h2>PARSEINFOFILE<a name="19"></a></h2><pre>Usage:   structInfo = SurferDicomConverter.parseInfoFile(fqfn)
+         ^ struct-array for scan session, one struct per scan series;
+           fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens
+Uses:   parseInfoCell</pre><pre class="codeinput">            structInfo = mlsurfer.SurferDicomConverter.parseInfoCell( <span class="keyword">...</span>
+                         mlfourd.FilesystemRegistry.textfileToCell(fqfn));
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+        <span class="keyword">function</span>  structInfo  = parseInfoCell(ca)
+</pre><h2>PARSEINFOCELL<a name="21"></a></h2><pre>Usage:   structInfo = SurferDicomConverter.parseInfoCell(cell_of_string_lines)
+                                                  ^ one element per line of text generated by
+                                                    unpacksdcmdir
+         ^ struct-array for scan session, one struct per scan series;
+           fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens</pre><pre class="codeinput">            assert(~isempty(ca) &amp;&amp; ~isempty(ca{1}), <span class="string">'ca was empty'</span>);
+            <span class="keyword">try</span>
+                <span class="keyword">for</span> j = 1:length(ca)
+                    [~, info]     = regexp(ca{j},  mlsurfer.SurferDicomConverter.INFO_EXPRESSION, <span class="string">'tokens'</span>, <span class="string">'names'</span>);
+                    <span class="keyword">if</span> (~isempty(info))
+                        info.index    = str2double(info.index);
+                        info.dim1     = str2double(info.dim1);
+                        info.dim2     = str2double(info.dim2);
+                        info.dim3     = str2double(info.dim3);
+                        info.dim4     = str2double(info.dim4);
+                        info.dims     = [info.dim1 info.dim2 info.dim3 info.dim4];
+                        structInfo(j) = info; <span class="comment">%#ok&lt;AGROW&gt;</span>
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">catch</span> ME
+                handexcept(ME);
+            <span class="keyword">end</span>
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+        <span class="keyword">function</span>  structInfo  = parseInfoString(info)
+</pre><h2>PARSEINFOSTRING<a name="23"></a></h2><pre>Usage:   structInfo = SurferDicomConverter.parseInfoString(info_string)
+         ^ struct-array for scan session, one struct per scan series;
+           fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens
+Uses:  parseInfoCell</pre><pre class="codeinput">            EXPRESS    = <span class="string">'Done scanning \w+\s+\w+\s+\d+\s+\d+\S\d+\S\d+\s+\w+\s+\d+\s+[-]+\s+'</span>;
+            matchend   = regexp(info, EXPRESS, <span class="string">'end'</span>);
+            info       = info(matchend(end)+1:end); <span class="comment">% choose last instance only</span>
+            matchstart = regexp(info, <span class="string">'\n'</span>);
+            ca         = cell(1,length(matchstart));
+            ca{1}      = info(1:matchstart(1));
+            <span class="keyword">for</span> m = 2:length(matchstart)
+                ca{m}  = info(matchstart(m-1)+1:matchstart(m));
+            <span class="keyword">end</span>
+            structInfo = mlsurfer.SurferDicomConverter.parseInfoCell(ca);
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+        <span class="keyword">function</span>  ca          = seqTypes(unpackInfo)
+
+            ca = cell(1,length(unpackInfo));
+            <span class="keyword">for</span> r = 1:length(unpackInfo)
+                ca{r} = unpackInfo(r).seq_type;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span> <span class="comment">% protected static methods</span>
+
+	<span class="comment">%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput">Error using mlsurfer.SurferDicomConverter
+Creating an instance of the Abstract class 'mlsurfer.SurferDicomConverter' is not allowed.
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.13<br></p></div><!--
+##### SOURCE BEGIN #####
+classdef SurferDicomConverter < mlfourd.DicomConverter
+	%% SURFERDICOMCONVERTER is a concrete strategy for interfaces DicomConverter, ModalityConverter;
+    %                          a facade for freesurfer commands
+    %  Version $Revision$ was created $Date$ by $Author$,  
+ 	%  last modified $LastChangedDate$ and checked into svn repository $URL$ 
+ 	%  Developed on Matlab 7.13.0.564 (R2011b) 
+ 	%  $Id$ 
+ 	%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad) 
+
+    properties (Constant)
+        % for construction of structInfo
+        INFO_EXPRESSION = ...
+'(?<index>\d+)\s+(?<seq_type>\w+)\s+(?<status>\w+)\s+(?<dim1>\d+)\s+(?<dim2>\d+)\s+(?<dim3>\d+)\s+(?<dim4>\d+)\s+(?<siemens>\S+)';
+        SCAN_INFO = 'scan.info';
+    end
+    
+    properties        
+        unpackFolders = {'unpack'}; 
+    end
+    
+    properties (SetAccess = 'protected')    
+        orients2fix   = struct('img_type', { 'ase' }, 'orientation', { 'y' });
+    end
+        
+    methods (Static)
+        
+        function unpackFrom(mrpth)
+            %% UNPACKFROM 
+            %  Usage:   obj.unpackFrom(MR_path) % e.g., Trio
+            
+            import mlfourd.* mlsurfer.*;
+            if (~lexist(mrpth, 'dir')); 
+                warning('mlfourd:IOErr', 'could not find %s\n', mrpth);
+                return;
+            end
+            dcmpths = cellfun(@(x) fullfile(mrpth, x, ''), DicomConverter.dcmFolders, 'UniformOutput', false);
+            for d = 1:length(dcmpths)
+                if (lexist(dcmpths{d}))
+                    try
+                        this = SurferDicomConverter(dcmpths{d});
+                        this.unpack( ...
+                            SurferDicomConverter.findsubpath(mrpth, NamingRegistry.instance.sessionFolderPrefix));
+                    catch ME
+                        handwarning(ME, 'unpackFrom:  skipping %s\n', dcmpths{d});
+                    end
+                end
+            end            
+        end % static unpackFrom
+        function fixOrientsFrom(fslpth, o2fix) %#ok<INUSD>
+            %% FIXORIENTSFROM
+            %  Usage:  obj.fixOrientsFrom(fsl_path[, orients2fix]);
+            %                                        ^ struct; cf. ModalityConverter
+            
+            import mlfourd.*;
+            assert(lexist(fslpth, 'dir'));
+            this = SurferDicomConverter(fslpth);
+            if (~exist('o2fix', 'var')); o2fix = this.orients2fix; end %#ok<NASGU>
+            this.fixOrientKnown(fslpth, this.orients2fix);
+        end % static fixOrientsFrom      
+        function structInfo   = infoFile2structInfo(fil)
+            structInfo = mlsurfer.SurferDicomConverter.parseInfoCell( ...
+                             mlfourd.FilesystemRegistry.textfileToCell(fil));
+        end % static infoFile2structInfo
+        function [s,r]        = scanDicom(dcmdir, targdir)
+            %% SCANDICOM is a facade for unpacksdcmdir -scanonly
+            
+            import mlfourd.* mlsurfer.*;
+            names     = NamingRegistry.updateDicomUnpackPaths(dcmdir, targdir);
+            infofile  = fullfile(names.unpackPath, SurferDicomConverter.SCAN_INFO);
+            if (lexist(infofile, 'file'))
+                s = 0; r = cell2str( ...
+                               mlfourd.FilesystemRegistry.textfileToCell(fil), 't');
+            else
+                [s,r] = mlbash(['unpacksdcmdir -src ' names.dicomPath ' -targ ' names.unpackPath ' -scanonly ' infofile]);
+            end
+        end 
+    end % static methods
+    
+	methods 
+ 		% N.B. (Static, Abstract, Access='', Hidden, Sealed) 
+
+        function                rename(this, unpackPth, fslPth)
+            % RENAME
+
+            import mlfourd.*;
+            unpacked = DirTool(unpackPth);
+            FilesystemRegistry.ensureCompletePath(fslPth);
+            for d = 1:length(unpacked.dns)
+                fslName = this.namereg_.fslName(unpacked.dns{d});
+                series  = DirTool(fullfile(unpackPth, unpacked.dns{d}, ''));
+                for s = 1:length(series.dns)
+                    niftis = DirTool(fullfile(unpackPth, unpacked.dns{d}, series.dns{s}, '*.nii'));
+                    for n = 1:length(niftis.fqfns)
+                        copyfile(niftis.fqfns{n}, ...
+                                 fullfile(fslPth, [fslName '_' niftis.fns{n}]), 'f');
+                    end
+                end
+            end
+        end % rename
+        function structInfo   = dicomQuery(this, dcmPth, targPth)
+ 			%% DICOMQUERY
+            %  Usage:  structInfo = obj.dicomQuery([dicom_path, target_path])
+            %          ^ struct-array for session, one struct per series;
+            %            fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens
+            
+            import mlsurfer.*;
+            if ( exist('dcmPth',  'var')); this.dicomPath  = dcmPth;  end
+            if ( exist('targPth', 'var')); this.unpackPath = targPth; end
+            infofile = fullfile(this.unpackPath, this.SCAN_INFO);
+            if (lexist(infofile, 'file'))
+                structInfo = SurferDicomConverter.infoFile2structInfo(infofile);
+            else
+                structInfo = this.dicoms2structInfo;
+            end            
+ 		end % dicomQuery  
+        function structInfo   = dicoms2structInfo(this)
+            %% DICOM2STRUCTINFO
+            
+            import mlsurfer.*;
+            [s,r]      = SurferDicomConverter.scanDicom(this.dicomPath, this.unpackPath); 
+            assert(0 == s);
+            structInfo = SurferDicomConverter.parseInfoString(r);
+        end % dicoms2structInfo 
+        function unpackInfo   = structInfo2unpackInfo(this, structInfo)
+            %% STRUCTINFO2UNPACKINFO
+            %  Usage:  unpackInfo = obj.structInfo2unpackInfo(structInfo)
+            %                                      ^ cf. dicomQuery
+            %          ^ struct-array for session, one struct per series
+            %            fields:   index, seq_tuype, ext, name, dicom_path, target_path
+            
+            import mlsurfer.* mlfourd.*;
+            n       = 0;
+            unpackInfo = struct([]);
+            for s = 1:length(structInfo)
+                n = n + 1;
+                unpackInfo(n).index       = structInfo(s).index;
+                unpackInfo(n).seq_type    = structInfo(s).seq_type;
+                unpackInfo(n).ext         = 'nii';
+                unpackInfo(n).name        = sprintf('%03u.%s', unpackInfo(n).index, unpackInfo(n).ext);
+                unpackInfo(n).dicom_path  = this.dicomPath;
+                unpackInfo(n).target_path = this.unpackPath;
+            end
+            
+        end % structInfo2unpackInfo
+        function [str, degen] = listUniqueInfo(this)
+            import mlfourd.*;
+             dc          = DicomSession.createFromPaths(this.dicomPath);
+            [str, degen] = dc.listUniqueInfo('seq_type');
+        end % listUniqueInfo
+        function [str, degen] = listUniqueInfos(this)
+            import mlfourd.*;
+             dc          = DicomComposite.createFromPaths(this.studyPath);
+            [str, degen] = dc.listUniqueInfo('seq_type');
+        end % listUniqueInfos
+                
+ 		function this         = SurferDicomConverter(varargin) 
+ 			%% SURFERDICOMCONVERTER 
+ 			%  Usage:  cvert = SurferDicomConverter(dicom_path, unpack_path)
+			
+            this = this@mlfourd.DicomConverter(varargin{:});
+ 		end % SurferDicomConverter (ctor) 
+    end % methods    
+
+    methods (Static, Access = 'protected')
+        % Direct calls to Freesurfer commands        
+        
+        function  cal         = unpackDicom(dcmdir, targdir, unpackInfo)
+            %% UNPACKDICOM is a facade for unpacksdcmdir -fsfast
+            %  Usage:  cal = SurferDicomConverter.unpackDicom(dcmdir, targdir, unpackInfo)
+            %          ^ surfer stdout embedded in CellArrayList
+            %                                        unpackInfo is a struct-array ^  
+            %                                        fields:  index, seq_type, ext, name
+            %                                        e.g.,    18,    mprage,   mgz, 001.mgz
+            
+            assert(isstruct(unpackInfo) && ~isempty(unpackInfo));
+            names = mlfourd.NamingRegistry.updateDicomUnpackPaths(dcmdir, targdir);
+            cal   = mlpatterns.CellArrayList;
+            for n = 1:length(unpackInfo) %#ok<*FORFLG>
+
+                try
+                    assert(isnumeric(unpackInfo(n).index   ) && ~isempty(unpackInfo(n).index));
+                    assert(   ischar(unpackInfo(n).seq_type) && ~isempty(unpackInfo(n).seq_type));
+                    assert(   ischar(unpackInfo(n).ext     ) && ~isempty(unpackInfo(n).ext));
+                    assert(   ischar(unpackInfo(n).name    ) && ~isempty(unpackInfo(n).name));
+                    niiList = sprintf(' -run %i %s %s %s ', ...
+                              unpackInfo(n).index, unpackInfo(n).seq_type, unpackInfo(n).ext, unpackInfo(n).name);     
+                    [~,r_n] = mlbash(['unpacksdcmdir -src ' names.dicomPath ' -targ ' names.unpackPath ' -fsfast ' niiList]);
+                    cal.add(r_n);
+                catch ME
+                    handexcept(ME);
+                end
+            end
+        end            
+        function  structInfo  = parseInfoFile(fqfn)
+            %% PARSEINFOFILE
+            %  Usage:   structInfo = SurferDicomConverter.parseInfoFile(fqfn)
+            %           ^ struct-array for scan session, one struct per scan series;
+            %             fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens
+            %  Uses:   parseInfoCell
+
+            structInfo = mlsurfer.SurferDicomConverter.parseInfoCell( ...
+                         mlfourd.FilesystemRegistry.textfileToCell(fqfn));
+        end
+        function  structInfo  = parseInfoCell(ca)
+            %% PARSEINFOCELL
+            %  Usage:   structInfo = SurferDicomConverter.parseInfoCell(cell_of_string_lines)
+            %                                                    ^ one element per line of text generated by
+            %                                                      unpacksdcmdir
+            %           ^ struct-array for scan session, one struct per scan series;
+            %             fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens
+            
+            assert(~isempty(ca) && ~isempty(ca{1}), 'ca was empty');
+            try
+                for j = 1:length(ca)
+                    [~, info]     = regexp(ca{j},  mlsurfer.SurferDicomConverter.INFO_EXPRESSION, 'tokens', 'names');
+                    if (~isempty(info))
+                        info.index    = str2double(info.index);
+                        info.dim1     = str2double(info.dim1);
+                        info.dim2     = str2double(info.dim2);
+                        info.dim3     = str2double(info.dim3);
+                        info.dim4     = str2double(info.dim4);
+                        info.dims     = [info.dim1 info.dim2 info.dim3 info.dim4];
+                        structInfo(j) = info; %#ok<AGROW>
+                    end
+                end
+            catch ME
+                handexcept(ME);
+            end
+        end
+        function  structInfo  = parseInfoString(info)
+            %% PARSEINFOSTRING
+            %  Usage:   structInfo = SurferDicomConverter.parseInfoString(info_string)
+            %           ^ struct-array for scan session, one struct per scan series;
+            %             fields:  index, seq_type, status, dim1, dim2, dim3, dim4, siemens
+            %  Uses:  parseInfoCell
+            
+            EXPRESS    = 'Done scanning \w+\s+\w+\s+\d+\s+\d+\S\d+\S\d+\s+\w+\s+\d+\s+[-]+\s+';
+            matchend   = regexp(info, EXPRESS, 'end');
+            info       = info(matchend(end)+1:end); % choose last instance only
+            matchstart = regexp(info, '\n');
+            ca         = cell(1,length(matchstart));
+            ca{1}      = info(1:matchstart(1));
+            for m = 2:length(matchstart)
+                ca{m}  = info(matchstart(m-1)+1:matchstart(m));
+            end
+            structInfo = mlsurfer.SurferDicomConverter.parseInfoCell(ca);
+        end
+        function  ca          = seqTypes(unpackInfo)
+            
+            ca = cell(1,length(unpackInfo));
+            for r = 1:length(unpackInfo)
+                ca{r} = unpackInfo(r).seq_type;
+            end
+        end
+    end % protected static methods
+
+	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
+end
+
+
+##### SOURCE END #####
+--></body></html>
