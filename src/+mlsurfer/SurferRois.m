@@ -324,7 +324,7 @@ classdef SurferRois < mlrois.AbstractRois
             %            ^ containers.Map
                           
             p = inputParser;
-            addOptional(p, 'stat', 'mean', @(x) lstrfind(this.STATS_AVAILABLE, x));
+            addOptional(p, 'stat', 'mean', @(x) lstrfind(x, this.STATS_AVAILABLE));
             parse(p, varargin{:});
 
             import mlsurfer.*;

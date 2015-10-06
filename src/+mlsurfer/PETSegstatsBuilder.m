@@ -86,7 +86,7 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             if (~exist('studyPth', 'var'))
                 studyPth = pwd; end
             cd(studyPth);
-            dt = mlfourd.DirTools('mm0*');
+            dt = mlsystem.DirTools('mm0*');
             sessions = {};
             for d = 1:length(dt.fqdns)
                 try
@@ -104,7 +104,7 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             if (~exist('studyPth', 'var'))
                 studyPth = pwd; end
             cd(studyPth);
-            dt = mlfourd.DirTools('mm0*');
+            dt = mlsystem.DirTools('mm0*');
             sessions = {};
             for d = 1:length(dt.fqdns)
                 try

@@ -71,11 +71,11 @@ classdef ParcellationSegments
             
             import mlsurfer.*;
             p = inputParser;
-            addRequired(  p, 'parameter',          @ischar);
-            addRequired(  p, 'hemisphere',         @(x) strcmp('lh',x) || strcmp('rh',x));
-            addParamValue(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
-            addParamValue(p, 'Delta',       false, @islogical);
-            addParamValue(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
+            addRequired(  p, 'parameter',         @ischar);
+            addRequired(  p, 'hemisphere',        @(x) strcmp('lh',x) || strcmp('rh',x));
+            addParameter(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
+            addParameter(p, 'Delta',       false, @islogical);
+            addParameter(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
             parse(p, param, hemis, varargin{:});
             this.parameter   = param;
             this.hemisphere  = hemis;

@@ -33,10 +33,10 @@ classdef DatasetMap
 
             import mlsurfer.*;
             p = inputParser;
-            addRequired(  p, 'param',              @ischar);
-            addParamValue(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
-            addParamValue(p, 'Delta',       false, @islogical);
-            addParamValue(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
+            addRequired( p, 'param',              @ischar);
+            addParameter(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
+            addParameter(p, 'Delta',       false, @islogical);
+            addParameter(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
             parse(p, param, varargin{:});
             
             this.parc_ = Parcellations( ...

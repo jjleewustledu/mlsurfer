@@ -1,5 +1,7 @@
 classdef SurferData 
-	%% SURFERDATA contains and manages cortical thickness and surface data 
+	%% SURFERDATA contains and manages cortical thickness and surface data.
+    %  It was written for rapid-prototyping of freesurfer analysis.  
+    
 	%  Version $Revision: 2370 $ was created $Date: 2013-03-05 06:42:34 -0600 (Tue, 05 Mar 2013) $ by $Author: jjlee $,  
  	%  last modified $LastChangedDate: 2013-03-05 06:42:34 -0600 (Tue, 05 Mar 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mlsurfer/src/+mlsurfer/trunk/SurferData.m $ 
  	%  Developed on Matlab 7.13.0.564 (R2011b) 

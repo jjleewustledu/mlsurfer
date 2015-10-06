@@ -52,7 +52,7 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
         function      buildThicknessForStudy(studyPth)
             assert(lexist(studyPth, 'dir'));
             cd(studyPth);
-            dt = mlfourd.DirTools(mlsurfer.VolumeRoiCorticalThicknessBuilder.SESSION_PATTERN);
+            dt = mlsystem.DirTools(mlsurfer.VolumeRoiCorticalThicknessBuilder.SESSION_PATTERN);
             for f = 1:dt.length
                 vrctb = mlsurfer.VolumeRoiCorticalThicknessBuilder('SessionPath', dt.fqdns{f});
                 vrctb.buildThickness;

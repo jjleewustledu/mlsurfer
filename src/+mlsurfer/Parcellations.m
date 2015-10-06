@@ -1,5 +1,9 @@
 classdef Parcellations  
-	%% PARCELLATIONS slices, dices and presents data from Freesurfer in formats useful for Matlab
+	%% PARCELLATIONS slices, dices and presents data from Freesurfer in formats useful for Matlab.
+    %  Its ctor uses a SurferBuilder object for filesystem information.
+    %  Symbols:  
+    %      'dsa' denotes data hand-recorded from interventional radiology reports of hemodynamic impairment;
+    %      'cvs' denotes the CVS database of normal volunteers provided by the Freesurfer developers 
     
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -12,15 +16,13 @@ classdef Parcellations
     properties (Constant)
         HEMIS           = { 'lh' 'rh' }
         PARAMS          = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' 'adc_default' 'dwi_default_meanvol' ...
-                            'thickness' 'thicknessStd' 'thicknessStddev' 'cvs' ...
-                            'dsa' ...
-                             mlsurfer.PETControlsSegstatsBuilder.OEFNQ_FILEPREFIX }; 
+                            'thickness' 'thicknessStd' 'cvs' 'dsa' 'oefnq_default_161616fwhh' };
         PARAMS2         = {  'ho' 'oo' 'oc' };  
         STATS_SUFFIX    =   '_on_fsanatomical.stats';
-        TERRITORIES     = { 'all' 'all_aca_mca' 'aca' 'aca_min' 'aca_max' 'mca' 'mca_min' 'mca_max' 'pca' 'pca_min' 'pca_max' ...
-                            'border_aca_mca' 'border_mca_pca' 'sinus' 'cereb' };
+        TERRITORIES     = { 'all' 'all_aca_mca' 'aca' 'aca_min' 'aca_max' 'mca' 'mca_min' 'mca_max' 'pca' 'pca_min' 'pca_max' 'cereb' };
         STATISTICS      = { 'mean' 'stddev' 'std' 'min' 'max' 'range' 'volume' };
-        T1_DEFAULT      = 'MNI152_T1_1mm_brain'
+        
+        COLOR_LUT_FILENAME = '/Volumes/PassportStudio2/cvl/np755/JJLColorLUTshort.txt';
     end
     
     properties (Dependent)
@@ -29,36 +31,9 @@ classdef Parcellations
     
     methods %% GET
         function map = get.segidentifiedSegnameMap(this)
-            assert(~isempty(this.segidentifiedSegnameMap_), 'segidentifiedSegnameMap was called before interval data was set');
+            assert(~isempty(this.segidentifiedSegnameMap_), ...
+                   'segidentifiedSegnameMap was called before interval data was set');
             map = this.segidentifiedSegnameMap_;
-        end
-    end
-    
-    methods (Static)
-        function [m3,m4] = intersectMappingKeys(m, m2)
-            %% INTERSECTMAPS accepts two maps, determines the set-intersection of their keys, 
-            %  then returns two maps that share identical keys and identical lengths but non-identical values.
-            
-            kys  = m.keys; 
-            kys2 = m2.keys; 
-            
-            import mlsurfer.*;
-            ikys = intersect(Parcellations.keys2str(kys), Parcellations.keys2str(kys2));
-            if (length(ikys) == length(kys) && length(ikys) == length(kys2))
-                m3 = m; m4 = m2; return; end
-            if (isnumeric(kys{1}))
-                ikys = Parcellations.keys2double(ikys); end
-            m3 = Parcellations.remap(m,  ikys);
-            m4 = Parcellations.remap(m2, ikys);
-        end
-        function  m1     = invertMap(m, structField)
-            if (~lexist('structField', 'var'))
-                structField = 'segname'; end
-            vals = cell(1, m.length);
-            for k = 1:length(m.keys)
-                vals{k} = m(k).(structField);
-            end
-            m1 = containers.Map(vals, m.keys, 'UniformValues', false);
         end
     end
     
@@ -77,56 +52,14 @@ classdef Parcellations
             this = this.generateSegidentifiedSegnameMap;
         end
         
-        function fn          = statsFilename(this, hemi, param)
-            %% PARAMETERFILENAME returns a canonical filename for freesurfer statistics
-            %  Use:   fully_qualified_filename = this.statsFilename(hemisphere, parameter_name)
-            %                                                       ^ lh, rh
-            %                                                                   ^ from this.PARAMS or this.PARAMS2
-            
-            assert(strcmp('lh', hemi) || strcmp('rh', hemi));
-            assert(ischar(param));
-            
-            if (lstrfind(this.PARAMS, param))
-                param = [param '_on_' this.T1_DEFAULT];
-            elseif (lstrfind(this.PARAMS2, param))
-                param = [param '_on_' this.T1_DEFAULT mlsurfer.PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX];
-            else
-                error('mlsurfer:unsupportedParamValue', 'Parcellations.statsFilenameMap.param->%s', param);
-            end            
-            fn = fullfile(this.bldr_.fslPath, [hemi '_' param this.STATS_SUFFIX]);
-        end
-        function fqfn        = tableFilename(this, hemi, param)
-            fqfn = fullfile(this.bldr_.fslPath, [hemi '_aparc_a2009s_' param '.table']);
-        end
-        function fqfn        = thicknessCvsTableFilename(this)
-            fqfn = fullfile(this.bldr_.studyPath, 'cvs_avg35_aparc_a2009s_lh_thickness.table');
-        end
-        function fqfn        = dsaTableFilename(this, hemi)
-            fqfn = fullfile(this.bldr_.fslPath, [hemi '_dsa.table']);
-        end
-        function tf          = isInTerritory(this, segname, terr)
-            %% ISINTERRITORY returns boolean for segmentation name belonging to a territory from list this.TERRITORY
-            %  Use:   tf = this.isInTerritory(segmentation_name, territory_name)
-            
-            assert(ischar(segname));
-            assert(lstrfind(terr, this.TERRITORIES));
-            tf = lstrfind(segname, this.cachedTerritory(terr));
-        end
-        function tf          = isInHemisphere(~, segname, hemi)
-            if (lstrfind(segname, [hemi '_']))
-                tf = true;
-            else
-                tf = false;
-            end                
-        end
         function this        = generateSegidentifiedSegnameMap(this)
             %% GENERATESEGIDENTIFIEDSEGNAMEMAP generates a mapping of segid to segname from file this.COLOR_LUT_FILENAME.
             %  It is public & browsable for purposes of troubleshooting.
             %  It should be called only once per session-level analysis.
-            %  Private territory caches are generated for territorial analyses; caller must update object this.
+            %  Private territory caches are generated for territorial analyses.
+            %  The caller must update object this.
             
-            theText = mlio.TextIO.textfileToCell( ...
-                                  fullfile(this.bldr_.studyPath, this.COLOR_LUT_FILENAME));
+            theText = mlio.TextIO.textfileToCell(this.COLOR_LUT_FILENAME);
             this.segidentifiedSegnameMap_ = containers.Map('KeyType', 'double', 'ValueType', 'any');
             this = this.initializeTerritoryCaches;
             for t = 2:length(theText)
@@ -188,6 +121,59 @@ classdef Parcellations
             end 
         end
         
+        function fqfn        = statsFilename(this, hemi, param)
+            %% PARAMETERFILENAME returns a canonical filename for freesurfer statistics created by the user
+            %  Use:   fully_qualified_filename = this.statsFilename(hemisphere, parameter_name)
+            %                                                       ^ lh, rh    ^ from this.PARAMS or this.PARAMS2
+            
+            assert(strcmp('lh', hemi) || strcmp('rh', hemi));
+            assert(ischar(param));
+            
+            if (lstrfind(param, this.PARAMS))
+                param = [param '_on_t1_default'];
+            elseif (lstrfind(param, this.PARAMS2))
+                param = [param '_on_t1_default'];
+                %param = [param '_on_t1_default' mlsurfer.PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX];
+            else
+                error('mlsurfer:unsupportedParamValue', 'Parcellations.statsFilenameMap.param->%s', param);
+            end            
+            fqfn = fullfile(this.bldr_.fslPath, [hemi '_' param this.STATS_SUFFIX]);
+        end
+        function fqfn        = paramTableFilename(this, hemi, param)
+            %% PARAMTABLEFILENAME returns the table-file of thicknesses for the subject identified by the ctor
+            
+            fqfn = fullfile(this.bldr_.fslPath, [hemi '_aparc_a2009s_' param '.table']);
+        end
+        function fqfn        = thicknessCvsTableFilename(this)
+            %% THICKNESSCVSTABLEFILENAME returns a table-file for thickness statistics from Freesurfer's CVS 
+            %  dataset of normal volunteers
+            
+            fqfn = fullfile(this.bldr_.studyPath, 'cvs_avg35_aparc_a2009s_lh_thickness.table');
+        end
+        function fqfn        = dsaTableFilename(this, hemi)
+            %% DSATABLEFILENAME returns the table-file for digital subtraction angiography results, 
+            %  recorded from the subject's interventional radiology report; that table lists regions of 
+            %  hemodynamic impairment.
+            
+            fqfn = fullfile(this.bldr_.fslPath, [hemi '_dsa.table']);
+        end
+        
+        function tf          = isInTerritory(this, segname, terr)
+            %% ISINTERRITORY returns boolean for segmentation name belonging to a territory from list this.TERRITORY
+            %  Use:   tf = this.isInTerritory(segmentation_name, territory_name)
+            
+            assert(ischar(segname));
+            assert(lstrfind(terr, this.TERRITORIES));
+            tf = lstrfind(segname, this.cachedTerritory(terr));
+        end
+        function tf          = isInHemisphere(~, segname, hemi)
+            if (lstrfind(segname, [hemi '_']))
+                tf = true;
+            else
+                tf = false;
+            end                
+        end
+        
         function aMap        = segidentifiedStatsMap(this, hemi, param, varargin)
             %% SEGIDENTIFIEDSTATSMAP maps segmentation id-numbers to stats
             %  Usage:   aMap = obj.segidentifiedStatsMap(hemi, param[, terr, statistic])
@@ -219,7 +205,7 @@ classdef Parcellations
                         end
                     catch ME2
                         if (~lstrfind(segname, 'Medial_wall') && ...
-                            ~lstrfind(param, mlsurfer.PETSegstatsBuilder.OC_FILEPREFIX)) %% known to be missing in imaging data
+                            ~lstrfind(mlsurfer.PETSegstatsBuilder.OC_FILEPREFIX, param)) %% known to be missing in imaging data
                             this.fprintfException('segidentifiedStatsMap', '[table-file for dsa, cvs, thickness, thicknessstd]', ...
                                                    segids{s}, [segname '...']);
                             handwarning(ME2);
@@ -271,7 +257,6 @@ classdef Parcellations
         DSA_TEXT_EXPR             = '(?<territory>\S+)\s+(?<impaired>\d)'
         INDEXED_TEXT_EXPR         = '(?<segid>\d+)\s+(?<segname>\S+)\s+(?<rgba>\d+\s+\d+\s+\d+\s+\d+)\s+(?<territory>\w+)';
         PARAMETER_TABLE_TEXT_EXPR = '(?<segname>\S+)\s+(?<parameter>\d+(\.\d+|))';
-        COLOR_LUT_FILENAME        = 'JJLColorLUTshort.txt';
     end
     
     properties (Access = 'private')
@@ -357,9 +342,10 @@ classdef Parcellations
             end
         end
         function        fprintfException(meth, statsFn, line, textline)
-            fprintf(['mlsurfer.Parcellations.' meth ' encountered problem in:\n']);
-            fprintf('\tfile->\n\t%s\n', statsFn);                                
-            fprintf('\tline %i->%s\n', line, textline);
+            if (str2double(getenv('VERBOSITY')))
+                fprintf(['mlsurfer.Parcellations.' meth ' encountered problem in:\n']);
+                fprintf('\tfile->%s, line %i->%s\n', statsFn, line, textline);
+            end
         end
     end
     
@@ -501,7 +487,7 @@ classdef Parcellations
             end
         end
         function aMap  = segnamedThicknessMap(this, hemi, param, terr)
-            theText = mlio.TextIO.textfileToCell(this.tableFilename(hemi, param));
+            theText = mlio.TextIO.textfileToCell(this.paramTableFilename(hemi, param));
         
             try
                 aMap = containers.Map;

@@ -47,7 +47,7 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             if (~exist('studyPth', 'var'))
                 studyPth = pwd; end
             cd(studyPth);
-            dt = mlfourd.DirTools('mm0*');
+            dt = mlsystem.DirTools('mm0*');
             sessions = {};
             for d = 1:length(dt.fqdns)
                 try
@@ -275,22 +275,22 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             import mlfsl.*;
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p, 'dat',            '', @ischar);
-            addParamValue(p, 'fsaverage',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'mask',           [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'roi',            [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'segmentation',   [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'segstats',       [], @ischar);
-            addParamValue(p, 'segstatsSuffix', ...
+            addParameter(p, 'dat',            '', @ischar);
+            addParameter(p, 'fsaverage',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'mask',           [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'roi',            [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'segmentation',   [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'segstats',       [], @ischar);
+            addParameter(p, 'segstatsSuffix', ...
                              mlsurfer.Parcellations.STATS_SUFFIX, ...
                                                    @ischar);
-            addParamValue(p, 'sessionPath',    [], @(x) isSessionPath(x));
-            addParamValue(p, 'structural',     [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'targetId', ...
+            addParameter(p, 'sessionPath',    [], @(x) isSessionPath(x));
+            addParameter(p, 'structural',     [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'targetId', ...
                              'fsaverage',          @ischar);
             parse(p, varargin{:});
             this.dat_                = p.Results.dat;

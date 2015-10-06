@@ -1,7 +1,7 @@
 classdef SurferBuilder 
 	%% SURFERBUILDER is the interface for freesurfer workflows.
     %  Classes are organized by the builder design patterns.   
-    %  It is also an abstract Prototype; SurferBuilder subclasses folloow the prototpye design pattern.
+    %  SurferBuilder is an abstract Prototype; its subclasses folloow the prototpye design pattern.
     %  See also:  mlpatterns.Builder, mlfsl.SurferDirector
     
     %  Version $Revision: 2538 $ was created $Date: 2013-08-18 18:06:43 -0500 (Sun, 18 Aug 2013) $ by $Author: jjlee $,  
@@ -45,6 +45,8 @@ classdef SurferBuilder
             stats = [];
         end
     end
+    
+    %% PROTECTED
     
     methods (Access = 'protected')
         function this = SurferBuilder()

@@ -124,7 +124,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             parse(p, varargin{:});
             
             cd(p.Results.studyPath);
-            dt = mlfourd.DirTools(mlsurfer.PETControlsSegstatsBuilder.SESSION_PATTERN);
+            dt = mlsystem.DirTools(mlsurfer.PETControlsSegstatsBuilder.SESSION_PATTERN);
             sessions = {};
             for d = 1:length(dt.fqdns)
                 try
