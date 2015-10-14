@@ -97,31 +97,30 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
         end 
         function this = buildPET(this)
             cd(this.fslPath);
-            import mlfourd.*;
-                   
+            import mlfourd.* mlsurfer.* mlpet.*;
             this.product = ImagingContext.load( ...
-                               fullfile(this.fslPath, 't1_default.nii.gz'));
-            this.dat     = fullfile(this.fslPath, ['t1_default' this.DAT_SUFFIX]);
-            vtor         = mlsurfer.SurferVisitor;
+                               fullfile(this.fslPath, [SurferFilesystem.T1_FILEPREFIX '.nii.gz']));
+            this.dat     = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
+            vtor         = SurferVisitor;
             this         = vtor.visitBBRegisterNative(this);            
             
-            this.product = this.normalizePet( ...
-                               ImagingContext.load( ...
-                                   fullfile(this.fslPath, [mlpet.O15Builder.HO_MEANVOL_FILEPREFIX '_on_t1_default.nii.gz'])));
+            this.product = ImagingContext.load( ...
+                           fullfile(this.fslPath, ...
+                           [O15Builder.HO_MEANVOL_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']));
             this         = vtor.visitVol2vol(this);            
             this         = vtor.visitIdSegstats(this, 'lh');
             this         = vtor.visitIdSegstats(this, 'rh');
         end
         function this = buildADC(this)
             cd(this.fslPath);
-            import mlfourd.*;
+            import mlfourd.* mlsurfer.* mlmr.*;
             
-            mad          = mlmr.MRAlignmentDirector.factory('reference', this.bt1);            
+            mad          = MRAlignmentDirector.factory('reference', this.bt1);            
             this.product = mad.meanvol( ...
                            ImagingContext.load( ...
                                fullfile(this.fslPath, 'dwi_default.nii.gz')));
-            this.dat     = fullfile(this.fslPath, [this.product.fileprefix this.DAT_SUFFIX]);
-            vtor         = mlsurfer.SurferVisitor;
+            this.dat     = SurferFilesystem.datFilename(this.fslPath, this.product.fileprefix);
+            vtor         = SurferVisitor;
             this         = vtor.visitBBRegisterADC(this);
             
             this.product = ImagingContext.load( ...
@@ -180,10 +179,10 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
             
             p = inputParser;        
             p.KeepUnmatched = true;
-            addParamValue(p, 'bt1',          this.bt1_,          @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'roi',          [],                 @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'segmentation', this.segmentation_, @(x) lexist(x, 'file'));
-            addParamValue(p, 'targetId',     this.sessionId,     @(x) lexist(fullfile(this.studyPath, x, ''), 'dir'));
+            addParameter(p, 'bt1',          this.bt1_,          @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'roi',          [],                 @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'segmentation', this.segmentation_, @(x) lexist(x, 'file'));
+            addParameter(p, 'targetId',     this.sessionId,     @(x) lexist(fullfile(this.studyPath, x, ''), 'dir'));
             parse(p, varargin{:});
             this.bt1_          = p.Results.bt1;
             this.roi_          = p.Results.roi;

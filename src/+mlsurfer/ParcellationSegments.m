@@ -1,5 +1,8 @@
 classdef ParcellationSegments  
-	%% PARCELLATIONSEGMENTS   
+	%% PARCELLATIONSEGMENTS collects freesurfer statistics as specified by parameters (thickness, CBF, OEF, etc.),
+    %  hemisphere, vascular territory, and path to the session data.  Static and instance variables provide
+    %  arrays of raw double, mean, median, std, stderr.
+    %  Uses:  Parcellations, SurferBuilderPrototype
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -18,6 +21,10 @@ classdef ParcellationSegments
     end
     
     methods (Static)
+        function m = asMap(varargin)
+            ps = mlsurfer.ParcellationSegments(varargin{:});
+            m  = ps.map;
+        end
         function d = asDouble(varargin)
             ps = mlsurfer.ParcellationSegments(varargin{:});
             d  = ps.double;
@@ -41,6 +48,9 @@ classdef ParcellationSegments
     end
     
 	methods 
+        function m = map(this)
+            m = this.map_;
+        end
  		function d = double(this)
             d = this.map2vec(this.map_);
  		end 
@@ -60,7 +70,8 @@ classdef ParcellationSegments
             dble  = this.double;
             dble1 = dble(~isnan(dble));
             s = std(dble1) / sqrt(length(dble1));
- 		end 
+        end 
+        
  		function this = ParcellationSegments(param, hemis, varargin) 
             %% PARCELLATIONSEGMENTS
  			%  Usage:  this = ParcellationSegments(parameter, hemisphere[, ParamName, ParamValue, ...]) 
@@ -71,8 +82,8 @@ classdef ParcellationSegments
             
             import mlsurfer.*;
             p = inputParser;
-            addRequired(  p, 'parameter',         @ischar);
-            addRequired(  p, 'hemisphere',        @(x) strcmp('lh',x) || strcmp('rh',x));
+            addRequired( p, 'parameter',          @ischar);
+            addRequired( p, 'hemisphere',         @(x) strcmp('lh',x) || strcmp('rh',x));
             addParameter(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
             addParameter(p, 'Delta',       false, @islogical);
             addParameter(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
@@ -92,7 +103,7 @@ classdef ParcellationSegments
     %% PRIVATE
     
     properties (Access = 'private')
-        map_
+        map_ % containers.Map provided on class instantiation by Parcellations.segidentifiedStatsMap
     end
     
     methods (Access = 'private')

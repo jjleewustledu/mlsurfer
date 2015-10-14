@@ -146,7 +146,7 @@ classdef SurferRois < mlrois.AbstractRois
             fp = this.INDEXED_ROI_PREFIX;
         end
         function fp    = get.structuralFileprefix(this) %#ok<MANU>
-            fp = 't1_default';
+            fp = mlsurfer.SurferFilesystem.T1_FILEPREFIX;
         end
         function mp    = get.thicknessMap(this)
             if (isempty(this.thicknessMap_))

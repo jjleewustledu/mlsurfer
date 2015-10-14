@@ -27,8 +27,8 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
         o15Composite
         oefnqFileprefix
         pNumber
-        t1Fileprefix
-        tisFileprefix
+        t1Prefix
+        tisPrefix
         tr        
     end 
 
@@ -93,10 +93,10 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             assert(strcmp('p', p(1)));
             assert(5 == length(p));
         end
-        function fp   = get.t1Fileprefix(this) %#ok<MANU>
+        function fp   = get.t1Prefix(this) %#ok<MANU>
             fp = 'MNI152_T1_1mm_brain';
         end
-        function fp   = get.tisFileprefix(this)
+        function fp   = get.tisPrefix(this)
             fp = ['r' this.pNumber 'tis_thr'];
         end
         function ic   = get.tr(this)
@@ -172,8 +172,8 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
         function this    = loadPrealignedProduct(this)
             import mlfourd.*;
             this.product = ImagingComposite.load( ...
-                           { ImagingContext.load(fullfile(this.fslPath, filename([this.ooFileprefix '_on_' this.t1Fileprefix]))) ...
-                             ImagingContext.load(fullfile(this.fslPath, filename([this.hoFileprefix '_on_' this.t1Fileprefix]))) });            
+                           { ImagingContext.load(fullfile(this.fslPath, filename([this.ooFileprefix '_on_' this.t1Prefix]))) ...
+                             ImagingContext.load(fullfile(this.fslPath, filename([this.hoFileprefix '_on_' this.t1Prefix]))) });            
         end
         function statfns = fsanatomicalStatsAppended(this)
             this  = this.appendOefToProduct;
@@ -187,28 +187,33 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             oeffp        = this.constructOEF;
             petAlignBldr = mlpet.PETAlignmentBuilder( ...
                 'product',        ImagingContext.load(fullfile(this.fslPath, filename(oeffp))), ...
-                'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(this.t1Fileprefix))), ...
-                'xfm',                                fullfile(this.fslPath, [this.hoFileprefix '_on_' this.t1Fileprefix '.mat']));
+                'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(this.t1Prefix))), ...
+                'xfm',                                fullfile(this.fslPath, [this.hoFileprefix '_on_' this.t1Prefix '.mat']));
             petAlignBldr = petAlignBldr.applyXfm;
             prd          = imcast(this.product, 'mlfourd.ImagingComponent');
             this.product = prd.add(petAlignBldr.product); 
         end
         function fp      = constructOEF(this)
+            pwd0 = pwd;
+            cd(this.fslPath);
             fp = this.oefnqFileprefix;   
-            this.ensureXfmForOef(this.hoFileprefix, this.t1Fileprefix);
-            this.ensureXfmForOef(this.ooFileprefix, this.t1Fileprefix);
-            if (~lexist(fullfile(this.fslPath, filename([this.oefnqFileprefix '_on_' this.t1Fileprefix]))))
+            this.ensureXfmForOef(this.hoFileprefix, this.t1Prefix);
+            this.ensureXfmForOef(this.ooFileprefix, this.t1Prefix);
+            if (~lexist(fullfile(this.fslPath, filename([this.oefnqFileprefix '_on_' this.t1Prefix]))))
                 mlpet.NonquantitativeCOSS.constructOEF('OO',            this.ooMeanvol, ...
                                                        'HO',            this.hoMeanvol, ...
-                                                       'OEFFileprefix', fullfile(this.fslPath, filename(fp)));
+                                                       'OEFFileprefix', fullfile(this.fslPath, filename(fp)), ...
+                                                       'Workpath',      this.fslPath);
             end
+            cd(pwd0);
         end
         function statfns = fsanatomicalStatsForProducts(this, prods)
             prods = imcast(prods, 'mlfourd.ImagingComponent');
             this  = this.ensureDat;
             
-            statfns  = mlpatterns.CellArrayList;
-            this.dat = fullfile(this.fslPath, [this.t1Fileprefix this.DAT_SUFFIX]);
+            import mlpatterns.* mlsurfer.*;
+            statfns  = CellArrayList;
+            this.dat = SurferFilesystem.datFilename(this.fslPath, this.t1Prefix);
             for p = 1:length(prods)
                 aProd = prods{p};
                 aProd = this.ensureOnT1Default(aProd);
@@ -222,14 +227,15 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             end
         end 
         function this    = ensureDat(this)
-            this.dat = fullfile(this.fslPath, [this.t1Fileprefix this.DAT_SUFFIX]);
+            import mlsurfer.*;
+            this.dat = SurferFilesystem.datFilename(this.fslPath, this.t1Prefix);
             if (~lexist(this.dat, 'file'))
                 this = this.bbregisterNative; end 
         end
         function nii     = ensureOnT1Default(this, nii)
-            if (~lstrfind(nii.fileprefix, ['_on_' this.t1Fileprefix]))
+            if (~lstrfind(nii.fileprefix, ['_on_' this.t1Prefix]))
                 nii = mlfourd.NIfTI.load( ...
-                    fullfile(nii.filepath, filename([nii.fileprefix '_on_' this.t1Fileprefix])));
+                    fullfile(nii.filepath, filename([nii.fileprefix '_on_' this.t1Prefix])));
             end
         end
         function product = normalizePETByTotalDose(this, product)
@@ -247,7 +253,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
 
             this = this@mlsurfer.SurferBuilderPrototype(varargin{:});
             this.product_ = this.o15Composite;
-            this.referenceImage = fullfile(this.fslPath, filename(this.t1Fileprefix));
+            this.referenceImage = fullfile(this.fslPath, filename(this.t1Prefix));
  		end 
     end 
 
@@ -265,8 +271,8 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             if (~lexist(fullfile(this.fslPath, [petFp '_on_' refFp '.mat']), 'file'))
                 try
                     this.concatXfmsForOef( ...
-                        fullfile(this.fslPath, [petFp '_on_' this.tisFileprefix '.mat']), ...
-                        fullfile(this.fslPath, [this.tisFileprefix '_on_' refFp '.mat']));
+                        fullfile(this.fslPath, [petFp '_on_' this.tisPrefix '.mat']), ...
+                        fullfile(this.fslPath, [this.tisPrefix '_on_' refFp '.mat']));
                 catch ME
                     handexcept(ME);
                 end

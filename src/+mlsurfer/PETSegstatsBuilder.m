@@ -153,11 +153,11 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             cd(this.sessionPath);
         end
         function statfns = fsanatomicalStatsPrealigned(this)
-            import mlfourd.*;
+            import mlfourd.* mlsurfer.*;
             this.product = ImagingComposite.load( ...
-                           { ImagingContext.load(fullfile(this.fslPath, filename([this.OC_FILEPREFIX '_131315fwhh_on_t1_default']))) ...
-                             ImagingContext.load(fullfile(this.fslPath, filename([this.OO_MEANVOL_FILEPREFIX '_on_t1_default']))) ...
-                             ImagingContext.load(fullfile(this.fslPath, filename([this.HO_MEANVOL_FILEPREFIX '_on_t1_default']))) });
+                           { ImagingContext.load(fullfile(this.fslPath, filename([this.OC_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX]))) ...
+                             ImagingContext.load(fullfile(this.fslPath, filename([this.OO_MEANVOL_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX]))) ...
+                             ImagingContext.load(fullfile(this.fslPath, filename([this.HO_MEANVOL_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX]))) });
             statfns      = this.fsanatomicalStatsAppended;
         end
         function statfns = fsanatomicalStatsAppended(this)
@@ -171,8 +171,9 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             prods   = imcast(prods, 'mlfourd.ImagingComponent');
             this = this.ensureDat;
             
-            statfns  = mlpatterns.CellArrayList;
-            this.dat = fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]);
+            import mlpatterns.* mlsurfer.*;
+            statfns  = CellArrayList;
+            this.dat = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             for p = 1:length(prods)
                 aProd = prods{p};
                 aProd = this.ensureOnT1Default(aProd);
@@ -186,34 +187,40 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             end
         end 
         function this    = ensureDat(this)
-            this.dat = fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]);
+            import mlsurfer.*;
+            this.dat = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             if (~lexist(this.dat, 'file'))
                 this = this.bbregisterNative; end 
         end
         function nii     = ensureOnT1Default(~, nii)
-            if (~lstrfind(nii.fileprefix, '_on_t1_default'))
+            import mlsurfer.*;
+            if (~lstrfind(nii.fileprefix, ['_on_' SurferFilesystem.T1_FILEPREFIX]))
                 nii = mlfourd.NIfTI.load( ...
-                    fullfile(nii.filepath, [nii.fileprefix '_on_t1_default.nii.gz']));
+                    fullfile(nii.filepath, [nii.fileprefix '_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']));
             end
         end
         function this    = appendOefToProduct(this)
-            import mlfourd.*;
+            import mlfourd.* mlsurfer.*;
             oeffp        = this.constructOEF;
             petAlignBldr = mlpet.PETAlignmentBuilder( ...
                 'product',        ImagingContext.load(fullfile(this.fslPath, filename(oeffp))), ...
-                'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(this.T1_FILEPREFIX))), ...
-                'xfm',                                fullfile(this.fslPath, [this.HO_MEANVOL_FILEPREFIX '_on_' this.T1_FILEPREFIX '.mat']));
+                'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(SurferFilesystem.T1_FILEPREFIX))), ...
+                'xfm',                                fullfile(this.fslPath, [this.HO_MEANVOL_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX '.mat']));
             petAlignBldr = petAlignBldr.applyXfm;
             prd          = imcast(this.product, 'mlfourd.ImagingComponent');
             this.product = prd.add(petAlignBldr.product); 
         end
         function fp      = constructOEF(this)
+            import mlsurfer.*;
+            pwd0 = pwd;
+            cd(this.fslPath);
             fp = this.OEFNQ_FILEPREFIX;   
-            this.ensureXfmForOef(this.HO_MEANVOL_FILEPREFIX, this.T1_FILEPREFIX);
-            this.ensureXfmForOef(this.OO_MEANVOL_FILEPREFIX, this.T1_FILEPREFIX);
+            this.ensureXfmForOef(this.HO_MEANVOL_FILEPREFIX, SurferFilesystem.T1_FILEPREFIX);
+            this.ensureXfmForOef(this.OO_MEANVOL_FILEPREFIX, SurferFilesystem.T1_FILEPREFIX);
             mlpet.NonquantitativeCOSS.constructOEF('OO',            this.ooMeanvol, ...
                                                    'HO',            this.hoMeanvol, ...
                                                    'OEFFileprefix', fullfile(this.fslPath, filename(fp)));
+            cd(pwd0);                                               
         end
         function product = normalizePETByTotalDose(this, product)
             product            = imcast(product, 'mlfourd.NIfTI');
@@ -229,8 +236,9 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             %                                     ^ cf. SurferBuilderPrototype
 
             this = this@mlsurfer.SurferBuilderPrototype(varargin{:});
+            import mlsurfer.*;
             this.product_ = this.o15Composite;
-            this.referenceImage = fullfile(this.fslPath, filename(this.T1_FILEPREFIX));
+            this.referenceImage = fullfile(this.fslPath, filename(SurferFilesystem.T1_FILEPREFIX));
  		end 
     end 
 

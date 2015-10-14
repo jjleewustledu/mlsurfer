@@ -78,30 +78,30 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             cd(this.sessionPath);
         end
         function statfns = fsanatomicalStatsAdc(this)
-            if (~lexist( ...
-                    fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]), 'file'))
+            import mlpatterns.* mlsurfer.*;
+            if (~lexist(SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX), 'file'))
                 this = this.bbregisterNative; 
             end  
-            statfns = mlpatterns.CellArrayList;
+            statfns = CellArrayList;
             this.product = imcast( ...
                 fullfile(this.fslPath, [this.adc.fileprefix '_on_' filename(this.t1.fileprefix)]), ...
                 'mlfourd.ImagingContext');
-            this.dat = fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]);
+            this.dat = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             [~,lhstat,rhstat] = this.surferRegisteredSegstats(this.product, ...
                                 ':colormap=heat:heatscale=0,2,6:heatscaleoptions=truncate:opacity=0.5');
             statfns.add(lhstat);
             statfns.add(rhstat);
         end 
         function statfns = fsanatomicalStatsDwi(this)
-            if (~lexist( ...
-                    fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]), 'file'))
+            import mlpatterns.* mlsurfer.*;
+            if (~lexist(SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX), 'file'))
                 this = this.bbregisterNative; 
             end  
-            statfns = mlpatterns.CellArrayList;
+            statfns = CellArrayList;
             this.product = imcast( ...
                 fullfile(this.fslPath, [this.dwi.fileprefix '_meanvol_on_' filename(this.t1.fileprefix)]), ...
                 'mlfourd.ImagingContext');
-            this.dat = fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]);
+            this.dat = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             [~,lhstat,rhstat] = this.surferRegisteredSegstats(this.product, ...
                                 ':colormap=heat:heatscale=0,2,6:heatscaleoptions=truncate:opacity=0.5');
             statfns.add(lhstat);
@@ -112,10 +112,11 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
  			%% ADCSEGSTATSBUILDER ctor
  			%  Usage:  this = ADCSegstatsBuilder([...]) 
             %                                     ^ cf. SurferBuilderPrototype
-
+            
             this = this@mlsurfer.SurferBuilderPrototype(varargin{:});
+            import mlsurfer.*;
             this.product = this.adc;
-            this.referenceImage = fullfile(this.fslPath, filename(this.T1_FILEPREFIX));
+            this.referenceImage = fullfile(this.fslPath, filename(SurferFilesystem.T1_FILEPREFIX));
  		end 
     end 
 

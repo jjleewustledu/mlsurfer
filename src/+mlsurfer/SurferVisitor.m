@@ -11,7 +11,6 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
  	%  $Id: SurferVisitor.m 2633 2013-09-16 06:20:19Z jjlee $ 
 
     properties (Constant)
-        DAT_SUFFIX  = mlsurfer.SurferBuilderPrototype.DAT_SUFFIX;
         WORK_FOLDER = 'fsl';
     end
     
@@ -142,6 +141,9 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
         %% SUPPORTED METHODS
         
         function bldr =   visitAparcstats2table(this, bldr, varargin)  
+            %% VISITAPARCSTATS2TABLE calls Freesurfer command aparcstats2table
+            %  meas:  area, volume, thickness, thicknessstd, meancurv, gauscurv, foldind, curvind
+            
             p = inputParser;
             addRequired(p, 'bldr',              @(x) isa(x, 'mlsurfer.SurferBuilder'));
             addOptional(p, 'hemi', 'lh',        @(x) bldr.checkHemi(x));
@@ -404,7 +406,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             
             opts         = mlsurfer.Mri_vol2volOptions;
             opts.mov     = bldr.product;
-            opts.reg     = fullfile(bldr.fslPath, ['t1_default' bldr.DAT_SUFFIX]);
+            opts.reg     = fullfile(bldr.fslPath, [bldr.t1Prefix bldr.datSuffix]);
             opts.fstarg  = true;
             opts.o       = [bldr.product.fqfileprefix '_fsanatomical.mgz'];
             this.mri_vol2vol(opts);
@@ -543,9 +545,11 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             num = nan; %#ok<NASGU>
             switch (hemi)
                 case 'lh'
-                    num = 11100 + (0:75);
+                    num = 11100 + (1:75);
+                    num = [7 8 num]; % add cerebellum
                 case 'rh'
-                    num = 12100 + (0:75);
+                    num = 12100 + (1:75);
+                    num = [46 47 num]; % add cerebellum
                 otherwise
                     error('mlsurfer:unsupportedParamValue', 'SurferVisitor.idsAparcA2009s.hemi->%s', hemi);
             end
@@ -621,21 +625,24 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
         function fqfn = hoFqfn(~, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ...
-                  [PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX '_on_t1_default' PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
+                  [PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX '_on_' ...
+                   SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
         end
         function fqfn = ooFqfn(~, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ...
-                  [PETSegstatsBuilder.OO_MEANVOL_FILEPREFIX '_on_t1_default' PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
+                  [PETSegstatsBuilder.OO_MEANVOL_FILEPREFIX '_on_' ...
+                   SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
         end
         function fqfn = ocFqfn(~, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ...
-                  [PETSegstatsBuilder.OC_FILEPREFIX '_on_t1_default' PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
+                  [PETSegstatsBuilder.OC_FILEPREFIX '_on_' ...
+                   SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
         end
         function fqfn = oefnqFqfn(this, bldr)
             import mlsurfer.*;
-            fqfn = fullfile(bldr.fslPath, [PETSegstatsBuilder.OEFNQ_FILEPREFIX '_on_t1_default.nii.gz']);
+            fqfn = fullfile(bldr.fslPath, [PETSegstatsBuilder.OEFNQ_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
             if (~lexist(fqfn, 'file'))
                 oo  = imcast(this.ooFqfn(bldr), 'mlfourd.NIfTI');
                 ho  = imcast(this.hoFqfn(bldr), 'mlfourd.NIfTI');
@@ -644,7 +651,8 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             end
         end
         function fqfn =   tauHoFqfn(this, bldr)
-            fqfn = fullfile(bldr.fslPath, ['tauHo_on_t1_default' mlsurfer.PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
+            import mlsurfer.*;
+            fqfn = fullfile(bldr.fslPath, ['tauHo_on_' SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
             if (~lexist(fqfn, 'file'))
                 oc  = imcast(this.ocFqfn(bldr), 'mlfourd.NIfTI');
                 ho  = imcast(this.hoFqfn(bldr), 'mlfourd.NIfTI');
@@ -653,7 +661,8 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             end
         end
         function fqfn =   tauOoFqfn(this, bldr)
-            fqfn = fullfile(bldr.fslPath, ['tauOo_on_t1_default' mlsurfer.PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
+            import mlsurfer.*;
+            fqfn = fullfile(bldr.fslPath, ['tauOo_on_' SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
             if (~lexist(fqfn, 'file'))
                 oc  = imcast(this.ocFqfn(bldr), 'mlfourd.NIfTI');
                 oo  = imcast(this.ooFqfn(bldr), 'mlfourd.NIfTI');
@@ -662,13 +671,16 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             end
         end
         function fqfn =   adcFqfn(~, bldr)
-            fqfn = fullfile(bldr.fslPath, 'adc_default_on_t1_default.nii.gz');
+            import mlsurfer.*;
+            fqfn = fullfile(bldr.fslPath, ['adc_default_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
         end
         function fqfn =   dwiFqfn(~, bldr)
-            fqfn = fullfile(bldr.fslPath, 'dwi_default_meanvol_on_t1_default.nii.gz');
+            import mlsurfer.*;
+            fqfn = fullfile(bldr.fslPath, ['dwi_default_meanvol_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
         end
         function fqfn =   perfusionFqfn(~, bldr, param)
-            fqfn = fullfile(bldr.perfPath, [param '_on_t1_default.nii.gz']);
+            import mlsurfer.*;
+            fqfn = fullfile(bldr.perfPath, [param '_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
         end      
     end
 

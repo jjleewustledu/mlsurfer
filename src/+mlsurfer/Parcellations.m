@@ -1,9 +1,11 @@
-classdef Parcellations  
-	%% PARCELLATIONS slices, dices and presents data from Freesurfer in formats useful for Matlab.
-    %  Its ctor uses a SurferBuilder object for filesystem information.
-    %  Symbols:  
-    %      'dsa' denotes data hand-recorded from interventional radiology reports of hemodynamic impairment;
-    %      'cvs' denotes the CVS database of normal volunteers provided by the Freesurfer developers 
+classdef Parcellations
+	%% PARCELLATIONS presents data generated from Freesurfer in formats useful for Matlab.  
+    %  Pubicallyl accessible containers.Map map segmentation numbers or segmentation names to numerical data
+    %  organized by Freesurfer-specified parcellations. 
+    %  Uses:  mlio.TextIO to read Freesurfer data from ascii files.
+    %  See also:  ParcellationSegments.
+    %  Symbols:  'dsa' denotes data hand-recorded from interventional radiology reports of hemodynamic impairment;
+    %            'cvs' denotes the CVS database of normal volunteers provided by the Freesurfer developers.
     
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -15,46 +17,258 @@ classdef Parcellations
  	 
     properties (Constant)
         HEMIS           = { 'lh' 'rh' }
-        PARAMS          = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' 'adc_default' 'dwi_default_meanvol' ...
-                            'thickness' 'thicknessStd' 'cvs' 'dsa' 'oefnq_default_161616fwhh' };
-        PARAMS2         = {  'ho' 'oo' 'oc' };  
-        STATS_SUFFIX    =   '_on_fsanatomical.stats';
-        TERRITORIES     = { 'all' 'all_aca_mca' 'aca' 'aca_min' 'aca_max' 'mca' 'mca_min' 'mca_max' 'pca' 'pca_min' 'pca_max' 'cereb' };
-        STATISTICS      = { 'mean' 'stddev' 'std' 'min' 'max' 'range' 'volume' };
+        PARAMS          = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' ...
+                            'adc_default' 'dwi_default_meanvol' 'cvs' 'dsa' ...
+                            'oefnq_default_161616fwhh' }
+        PARAMS2         = { 'ho' 'oo' 'oc' }
+        PARAMS3         = { 'thickness' 'thicknessStd' 'area' 'volume' 'meancurv' }
+        PARAMS_ALL      = [ mlsurfer.Parcellations.PARAMS ...
+                            mlsurfer.Parcellations.PARAMS2 ...
+                            mlsurfer.Parcellations.PARAMS3 ]
+        TERRITORIES     = { 'all' 'all_aca_mca' 'aca' 'aca_min' 'aca_max' 'mca' 'mca_min' 'mca_max' 'pca' 'pca_min' 'pca_max' 'cereb' }
+        STATISTICS      = { 'mean' 'stddev' 'std' 'min' 'max' 'range' 'volume' }
         
-        COLOR_LUT_FILENAME = '/Volumes/PassportStudio2/cvl/np755/JJLColorLUTshort.txt';
+        COLOR_LUT_FILENAME = '/Volumes/SeagateBP4/cvl/np755/JJLColorLUTshort_20151002.txt'
     end
     
     properties (Dependent)
-        segidentifiedSegnameMap
+        surferFilesystem
     end
     
-    methods %% GET
-        function map = get.segidentifiedSegnameMap(this)
-            assert(~isempty(this.segidentifiedSegnameMap_), ...
-                   'segidentifiedSegnameMap was called before interval data was set');
-            map = this.segidentifiedSegnameMap_;
+    methods %% GET/SET
+        function x = get.surferFilesystem(this)
+            x = this.surferFs_;
         end
     end
     
 	methods 
- 		function this        = Parcellations(varargin) 
+ 		function this = Parcellations(varargin) 
  			%% PARCELLATIONS 
- 			%  Usage:  this = Parcellations(aSurferBuilder) 
-            %                               ^ only used for filesystem locations
+ 			%  Usage:  this = Parcellations([surfer_filesystem_object]['SessionPath', path_to_session_data]) 
+            %                                ^ ISurferFilesystem
 
-            p = inputParser;
-            addRequired(p, 'bldr', @(x) isa(x, 'mlsurfer.SurferBuilder'));
-            parse(p, varargin{:});            
-            import mlio.*;
-                      
-            this.bldr_ = p.Results.bldr;
+            import mlsurfer.*;
+            ip = inputParser;
+            addOptional( ip, 'surferFs',    [],  @(x) isa(x, 'mlsurfer.ISurferFilesystem'));
+            addParameter(ip, 'SessionPath', pwd, @(x) lexist(x, 'dir'));
+            parse(ip, varargin{:});
+                  
+            if (~isempty(ip.Results.surferFs))
+                this.surferFs_ = SurferFilesystem(ip.Results.surferFs.sessionPath);
+            else
+                this.surferFs_ = SurferFilesystem(ip.Results.SessionPath);
+            end
             this = this.generateSegidentifiedSegnameMap;
         end
         
-        function this        = generateSegidentifiedSegnameMap(this)
+        function fqfn = statsFilename(this, hemi, param)
+            %% PARAMETERFILENAME returns a canonical filename for freesurfer statistics created by the user
+            %  Use:   fully_qualified_filename = this.statsFilename(hemisphere, parameter_name)
+            %                                                       ^ lh, rh    ^ from this.PARAMS or this.PARAMS2 or
+            %                                                                     this.PARAMS3
+            
+            import mlsurfer.*;
+            assert(strcmp('lh', hemi) || strcmp('rh', hemi));
+            assert(ischar(param)); 
+            if (lstrfind(param, this.PARAMS2))
+                fqfn = fullfile(this.surferFilesystem.segstats_fqfn(hemi, [param '_on_' SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX]));
+            else               
+                fqfn = fullfile(this.surferFilesystem.segstats_fqfn(hemi, [param '_on_' SurferFilesystem.T1_FILEPREFIX]));
+            end
+        end
+        function fqfn = tableFilename(this, hemi, param)
+            %% TABLEFILENAME returns the table-file of thicknesses for the subject identified by the ctor
+            
+            fqfn = fullfile(this.surferFilesystem.fslPath, ...
+                           [hemi '_aparc_a2009s_' param '.table']);
+        end
+        function fqfn = thicknessCvsTableFilename(this)
+            %% THICKNESSCVSTABLEFILENAME returns a table-file for thickness statistics from Freesurfer's 
+            %  CVS dataset of normal volunteers
+            
+            fqfn = fullfile(this.surferFilesystem.studyPath, ...
+                           'cvs_avg35_aparc_a2009s_lh_thickness.table');
+        end
+        function fqfn = dsaTableFilename(this, hemi)
+            %% DSATABLEFILENAME returns the table-file for digital subtraction angiography results, 
+            %  recorded from the subject's interventional radiology report; that table lists regions of 
+            %  hemodynamic impairment.
+            
+            fqfn = fullfile(this.surferFilesystem.fslPath, ...
+                           [hemi '_dsa.table']);
+        end
+        
+        function tf = isInTerritory(this, segname, terr)
+            %% ISINTERRITORY returns boolean for segmentation name belonging to a territory from list this.TERRITORY
+            %  Use:   tf = this.isInTerritory(segmentation_name, territory_name)
+            
+            assert(ischar(segname));
+            assert(lstrfind(terr, this.TERRITORIES));
+            tf = lstrfind(segname, this.cachedTerritory(terr));
+        end
+        function tf = isInHemisphere(~, segname, hemi)
+            if (lstrfind(segname, [hemi '_']))
+                tf = true;
+            else
+                tf = false;
+            end                
+        end
+        
+        function aMap = segidentifiedStatsMap(this, hemi, param, varargin)
+            %% SEGIDENTIFIEDSTATSMAP maps segmentation/parcellation id-numbers to stats. 
+            %  The map values are scalar double.
+            %  Usage:  aMap = obj.segidentifiedStatsMap(hemi, param[, terr, statistic])
+            %                                           ^ from this.HEMIS
+            %                                                 ^ from this.PARAMS
+            %                                                         ^ from this.TERRITORIES 
+            %                                                                ^ from this.STATISTICS
+            
+            p = inputParser;
+            addRequired(p, 'hemi',                      @(x) lstrfind(x, this.HEMIS));
+            addRequired(p, 'param',                     @ischar);
+            addOptional(p, 'terr', this.TERRITORIES{2}, @(x) lstrfind(x, this.TERRITORIES));
+            addOptional(p, 'statistic', 'mean',         @(x) lstrfind(x, this.STATISTICS));
+            parse(p, hemi, param, varargin{:});  
+            
+            import mlsurfer.*;
+            if (lstrfind(param, { 'thicknessStd' 'thickness' 'area' 'volume' 'meancurv' 'cvs' 'dsa' })) 
+                %% SPECIAL CASES
+                
+                aMap          = containers.Map('KeyType', 'double', 'ValueType', 'any');
+                segname2stats = this.segnamedStatsMap(hemi, param, p.Results.terr);
+                segid2segname = this.segidentifiedSegnameMap_;
+                segids        = segid2segname.keys;                
+                for s = 1:length(segids)
+                    try
+                        segname = segid2segname(segids{s}).segname;
+                        if (this.isInHemisphere(segname, hemi) && this.isInTerritory(segname, p.Results.terr))
+                            aMap(segids{s}) = segname2stats(segname);
+                        end
+                    catch ME2
+                        if (~lstrfind(segname, 'Medial_wall') && ...
+                            ~lstrfind(mlsurfer.PETSegstatsBuilder.OC_FILEPREFIX, param)) %% known to be missing in imaging data
+                            this.fprintfException('segidentifiedStatsMap', '[table-file for dsa, cvs, thickness, thicknessstd]', ...
+                                                   segids{s}, [segname '...']);
+                            handwarning(ME2);
+                        end
+                    end
+                end
+            else                
+                aMap = this.segidentifiedParameterizedMap(hemi, param, p.Results.terr);
+            end            
+            aMap = Parcellations.singleStatMap(aMap, p.Results.statistic);
+        end        
+        function aMap = segnamedStatsMap(this, hemi, param, varargin)
+            %% SEGNAMEDSTATSMAP maps segmentation/parcellation names to stats.
+            %  The map values are struct with fields that vary with param:
+            %      param == 'dsa' -> mean
+            %      param == 'cvs' -> (this.mapStructFieldname(param))
+            %      param == 'thickness' -> (this.mapStructFieldname(param))
+            %      param == 'thicknessStd' -> (this.mapStructFieldname(param))
+            %      param == other from this.PARAMS -> segid, volume_mm3, mean, stddev, min, max
+            %  Usage:   aMap = obj.segnamedStatsMap(hemi, param[, terr])
+            %                                       ^ from this.HEMIS
+            %                                             ^ from this.PARAMS
+            %                                                     ^ from this.TERRITORIES  
+            
+            p = inputParser;
+            addRequired(p, 'hemi',                      @(x) lstrfind(x, this.HEMIS));
+            addRequired(p, 'param',                     @ischar);
+            addOptional(p, 'terr', this.TERRITORIES{2}, @(x) lstrfind(x, this.TERRITORIES));
+            addOptional(p, 'statistic', 'mean',         @(x) lstrfind(x, this.STATISTICS));
+            parse(p, hemi, param, varargin{:});  
+                     
+            import mlsurfer.*;
+            if (lstrfind(lower(param), 'dsa'))
+                aMap = this.segnamedDsaMap(hemi); 
+                return; 
+            end
+            if (lstrfind(lower(param), 'cvs'))
+                param = 'thickness';
+                aMap = this.segnamedThicknessCvsMap(hemi, param, p.Results.terr); 
+                return; 
+            end
+            if (lstrfind(lower(param), 'thickness') || ...
+                lstrfind(lower(param), 'thicknessStd') || ...
+                lstrfind(lower(param), 'area') || ...
+                lstrfind(lower(param), 'volume') || ...
+                lstrfind(lower(param), 'meancurv'))
+                aMap = this.segnamedTableFileMap(hemi, param, p.Results.terr); 
+                return; 
+            end      
+            aMap = this.segnamedStatsFileMap(hemi, param, p.Results.terr);
+        end
+    end 
+    
+    methods (Static)
+        function aMap = singleStatMap(aMap, stat)
+            %% SINGLESTATMAP reduces structs in aMap.values to a single statistic from the struct
+             
+            assert(isa(aMap, 'containers.Map'));
+            testval = aMap.values; 
+
+            testval = testval{1};
+            if (~isstruct(testval))
+                return; end            
+            
+            if (lstrfind(lower(stat), 'mean'))
+                stat = 'mean'; end
+            if (lstrfind(lower(stat), 'std') || lstrfind(lower(stat), 'stddev') || lstrfind(lower(stat), 'sigma'))
+                stat = 'stddev'; end
+            if (lstrfind(lower(stat), 'min'))
+                stat = 'min'; end
+            if (lstrfind(lower(stat), 'max'))
+                stat = 'max'; end
+            if (lstrfind(lower(stat), 'range'))
+                stat = 'range'; end
+            if (lstrfind(lower(stat), 'volume'))
+                stat = 'volume_mm3'; end
+            vals = aMap.values;
+            for v = 1:length(vals)
+                vals{v} = vals{v}.(stat);
+            end
+            aMap = containers.Map(aMap.keys, vals);
+        end
+        function        fprintfException(meth, statsFn, line, textline)
+            if (str2double(getenv('VERBOSITY')))
+                fprintf(['mlsurfer.Parcellations.' meth ' encountered problem in:\n']);
+                fprintf('\tfile->%s, line %i->%s\n', statsFn, line, textline);
+            end
+        end
+    end
+    
+    %% PRIVATE
+    
+    properties (Constant, Access = 'private')
+        DSA_TEXT_EXPR             = '(?<territory>\S+)\s+(?<impaired>\d)'
+        INDEXED_TEXT_EXPR         = '(?<segid>\d+)\s+(?<segname>\S+)\s+(?<rgba>\d+\s+\d+\s+\d+\s+\d+)\s+(?<territory>\w+)';
+        PARAMETER_TABLE_TEXT_EXPR = '(?<segname>\S+)\s+(?<parameter>\d+(\.\d+|))';
+    end
+    
+    properties (Access = 'private')
+        surferFs_
+        cachedAcaLabels_
+        cachedAcaMaxLabels_
+        cachedAcaMcaLabels_
+        cachedAcaMinLabels_        
+        cachedAllLabels_
+        cachedMcaLabels_
+        cachedMcaMaxLabels_
+        cachedMcaMinLabels_  
+        cachedPcaLabels_
+        cachedPcaMaxLabels_
+        cachedPcaMinLabels_  
+        cachedSinusLabels_
+        cachedCerebLabels_
+        segidentifiedSegnameMap_ % maps segmentation numbers to segmentation names
+    end
+        
+    methods (Access = 'private')
+        
+        %% MAP GENERATORS
+        
+        function this  = generateSegidentifiedSegnameMap(this)
             %% GENERATESEGIDENTIFIEDSEGNAMEMAP generates a mapping of segid to segname from file this.COLOR_LUT_FILENAME.
-            %  It is public & browsable for purposes of troubleshooting.
             %  It should be called only once per session-level analysis.
             %  Private territory caches are generated for territorial analyses.
             %  The caller must update object this.
@@ -119,237 +333,183 @@ classdef Parcellations
                     end
                 end
             end 
-        end
-        
-        function fqfn        = statsFilename(this, hemi, param)
-            %% PARAMETERFILENAME returns a canonical filename for freesurfer statistics created by the user
-            %  Use:   fully_qualified_filename = this.statsFilename(hemisphere, parameter_name)
-            %                                                       ^ lh, rh    ^ from this.PARAMS or this.PARAMS2
+        end        
+        function aMap  = segnamedDsaMap(this, hemi)
+            %% SEGNAMEDDSAMAP returns a struct with field:  mean
             
-            assert(strcmp('lh', hemi) || strcmp('rh', hemi));
-            assert(ischar(param));
-            
-            if (lstrfind(param, this.PARAMS))
-                param = [param '_on_t1_default'];
-            elseif (lstrfind(param, this.PARAMS2))
-                param = [param '_on_t1_default'];
-                %param = [param '_on_t1_default' mlsurfer.PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX];
-            else
-                error('mlsurfer:unsupportedParamValue', 'Parcellations.statsFilenameMap.param->%s', param);
-            end            
-            fqfn = fullfile(this.bldr_.fslPath, [hemi '_' param this.STATS_SUFFIX]);
-        end
-        function fqfn        = paramTableFilename(this, hemi, param)
-            %% PARAMTABLEFILENAME returns the table-file of thicknesses for the subject identified by the ctor
-            
-            fqfn = fullfile(this.bldr_.fslPath, [hemi '_aparc_a2009s_' param '.table']);
-        end
-        function fqfn        = thicknessCvsTableFilename(this)
-            %% THICKNESSCVSTABLEFILENAME returns a table-file for thickness statistics from Freesurfer's CVS 
-            %  dataset of normal volunteers
-            
-            fqfn = fullfile(this.bldr_.studyPath, 'cvs_avg35_aparc_a2009s_lh_thickness.table');
-        end
-        function fqfn        = dsaTableFilename(this, hemi)
-            %% DSATABLEFILENAME returns the table-file for digital subtraction angiography results, 
-            %  recorded from the subject's interventional radiology report; that table lists regions of 
-            %  hemodynamic impairment.
-            
-            fqfn = fullfile(this.bldr_.fslPath, [hemi '_dsa.table']);
-        end
-        
-        function tf          = isInTerritory(this, segname, terr)
-            %% ISINTERRITORY returns boolean for segmentation name belonging to a territory from list this.TERRITORY
-            %  Use:   tf = this.isInTerritory(segmentation_name, territory_name)
-            
-            assert(ischar(segname));
-            assert(lstrfind(terr, this.TERRITORIES));
-            tf = lstrfind(segname, this.cachedTerritory(terr));
-        end
-        function tf          = isInHemisphere(~, segname, hemi)
-            if (lstrfind(segname, [hemi '_']))
-                tf = true;
-            else
-                tf = false;
-            end                
-        end
-        
-        function aMap        = segidentifiedStatsMap(this, hemi, param, varargin)
-            %% SEGIDENTIFIEDSTATSMAP maps segmentation id-numbers to stats
-            %  Usage:   aMap = obj.segidentifiedStatsMap(hemi, param[, terr, statistic])
-            %                                            ^ 'lh'|'rh'
-            %                                                  ^ from this.PARAMS
-            %                                                          ^ from this.TERRITORIES 
-            %                                                                 ^ from this.STATISTICS
-            
-            p = inputParser;
-            addRequired(p, 'hemi',                      @(x) lstrfind(x, this.HEMIS));
-            addRequired(p, 'param',                     @ischar);
-            addOptional(p, 'terr', this.TERRITORIES{2}, @(x) lstrfind(x, this.TERRITORIES));
-            addOptional(p, 'statistic', 'mean',         @(x) lstrfind(x, this.STATISTICS));
-            parse(p, hemi, param, varargin{:});  
-            
-            import mlsurfer.*;
-            if (lstrfind(param, { 'dsa' 'cvs' 'thicknessStd' 'thickness' })) 
-                %% SPECIAL CASES
-                
-                aMap          = containers.Map('KeyType', 'double', 'ValueType', 'any');
-                segname2stats = this.segnamedStatsMap(hemi, param, p.Results.terr);
-                segid2segname = this.segidentifiedSegnameMap;
-                segids        = segid2segname.keys;                
-                for s = 1:length(segids)
-                    try
-                        segname = segid2segname(segids{s}).segname;
-                        if (this.isInHemisphere(segname, hemi) && this.isInTerritory(segname, p.Results.terr))
-                            aMap(segids{s}) = segname2stats(segname);
-                        end
-                    catch ME2
-                        if (~lstrfind(segname, 'Medial_wall') && ...
-                            ~lstrfind(mlsurfer.PETSegstatsBuilder.OC_FILEPREFIX, param)) %% known to be missing in imaging data
-                            this.fprintfException('segidentifiedStatsMap', '[table-file for dsa, cvs, thickness, thicknessstd]', ...
-                                                   segids{s}, [segname '...']);
-                            handwarning(ME2);
+            shortMap = containers.Map;
+            try
+                theText = mlio.TextIO.textfileToCell(this.dsaTableFilename(hemi));
+                for t = 1:length(theText)
+                    if (~isempty(theText{t}))
+                        if (~strncmp(theText{t}, '#', 1))
+                            textline = theText{t};
+                            rgxnames = regexp(textline, this.DSA_TEXT_EXPR, 'names');
+                            shortMap(rgxnames.territory) = str2double(rgxnames.impaired);
                         end
                     end
                 end
-            else
-                
-                aMap = this.segidentifiedParameterizedMap(hemi, param, p.Results.terr);
+            catch ME %#ok<NASGU>
+                shortMap = containers.Map({'aca' 'mca' 'pca'}, {0 0 0});
+            end
+            impaired = impairmentList(shortMap);
+            
+            aMap          = containers.Map;
+            segid2segname = this.segidentifiedSegnameMap_;
+            tmkeys        = segid2segname.keys;
+            for k = 1:length(tmkeys)
+                segname = segid2segname(tmkeys{k});
+                if (lstrfind(segname.territory, impaired))
+                    aMap(segname.segname) = struct('mean',1); 
+                else
+                    aMap(segname.segname) = struct('mean',0);
+                end
             end
             
-            aMap = Parcellations.singleStatMap(aMap, p.Results.statistic);
-        end        
-        function aMap        = segnamedStatsMap(this, hemi, param, varargin)
-            %% SEGNAMEDSTATSMAP maps segmentation names to stats, returned as a struct
-            %  Usage:   aMap = obj.segnamedStatsMap(hemi, param[, terr])
-            %                                       ^ 'lh'|'rh'
-            %                                             ^ from this.PARAMS
-            %                                                     ^ from this.TERRITORIES  
-            
-            p = inputParser;
-            addRequired(p, 'hemi',                      @(x) lstrfind(x, this.HEMIS));
-            addRequired(p, 'param',                     @ischar);
-            addOptional(p, 'terr', this.TERRITORIES{2}, @(x) lstrfind(x, this.TERRITORIES));
-            addOptional(p, 'statistic', 'mean',         @(x) lstrfind(x, this.STATISTICS));
-            parse(p, hemi, param, varargin{:});  
-                     
-            import mlsurfer.*;
-            if (lstrfind(lower(param), 'dsa'))
-                aMap = this.segnamedDsaMap(hemi); 
-                return; 
-            end
-            if (lstrfind(lower(param), 'cvs'))
-                param = 'thickness';
-                aMap = this.segnamedThicknessCvsMap(hemi, param, p.Results.terr); 
-                return; 
-            end
-            if (lstrfind(lower(param), 'thickness') || lstrfind(lower(param), 'thicknessStd'))
-                aMap = this.segnamedThicknessMap(hemi, param, p.Results.terr); 
-                return; 
-            end      
-            aMap = this.segnamedParameterizedMap(hemi, param, p.Results.terr);
-        end
-    end 
-    
-    %% PRIVATE
-    
-    properties (Constant, Access = 'private')
-        DSA_TEXT_EXPR             = '(?<territory>\S+)\s+(?<impaired>\d)'
-        INDEXED_TEXT_EXPR         = '(?<segid>\d+)\s+(?<segname>\S+)\s+(?<rgba>\d+\s+\d+\s+\d+\s+\d+)\s+(?<territory>\w+)';
-        PARAMETER_TABLE_TEXT_EXPR = '(?<segname>\S+)\s+(?<parameter>\d+(\.\d+|))';
-    end
-    
-    properties (Access = 'private')
-        bldr_
-        cachedAcaLabels_
-        cachedAcaMaxLabels_
-        cachedAcaMcaLabels_
-        cachedAcaMinLabels_        
-        cachedAllLabels_
-        cachedMcaLabels_
-        cachedMcaMaxLabels_
-        cachedMcaMinLabels_  
-        cachedPcaLabels_
-        cachedPcaMaxLabels_
-        cachedPcaMinLabels_  
-        cachedSinusLabels_
-        cachedCerebLabels_
-        segidentifiedSegnameMap_
-    end
-    
-    methods (Static, Access = 'private')
-        function aMap = singleStatMap(aMap, stat) 
-            %% SINGLESTATMAP reduces structs in aMap.values to a single statistic from the struct
-            
-            assert(isa(aMap, 'containers.Map'));
-            testval = aMap.values; 
-            testval = testval{1};
-            if (~isstruct(testval))
-                return; end            
-            
-            if (lstrfind(lower(stat), 'mean'))
-                stat = 'mean'; end
-            if (lstrfind(lower(stat), 'std') || lstrfind(lower(stat), 'stddev') || lstrfind(lower(stat), 'sigma'))
-                stat = 'stddev'; end
-            if (lstrfind(lower(stat), 'min'))
-                stat = 'min'; end
-            if (lstrfind(lower(stat), 'max'))
-                stat = 'max'; end
-            if (lstrfind(lower(stat), 'range'))
-                stat = 'range'; end
-            if (lstrfind(lower(stat), 'volume'))
-                stat = 'volume_mm3'; end
-            vals = aMap.values;
-            for v = 1:length(vals)
-                vals{v} = vals{v}.(stat);
-            end
-            aMap = containers.Map(aMap.keys, vals);
-        end
-        function keys = keys2str(keys)
-            if (ischar(keys{1}))
-                return; end
-            if (isnumeric(keys{1}))
-                keys = cellfun(@(x) num2str(x), keys); return; end
-            try
-                keys = cellfun(@(x) char(x), keys); 
-            catch ME
-                handexcept(ME);
-            end
-        end
-        function keys = keys2double(keys)
-            if (isnumeric(keys{1}))            
-                keys = cellfun(@(x) double(x), keys); return; end
-            if (ischar(keys{1}))
-                keys = cellfun(@(x) str2double(x), keys); return; end
-            error('mlsurfer:unsupportedType', 'Parcellations.keys2double.keys have type %s', class(keys{1}));
-        end
-        function keys = keys2num(keys)
-            if (isnumeric(keys{1}))            
-                return; end
-            if (ischar(keys{1}))
-                keys = cellfun(@(x) str2num(x), keys); return; end %#ok<ST2NM>
-            error('mlsurfer:unsupportedType', 'Parcellations.keys2num.keys have type %s', class(keys{1}));
-        end
-        function m1   = remap(m, kys)
-            assert(length(kys) <= length(m));
-            m1 = containers.Map;
-            for k = 1:length(kys)
-                try
-                    m1(kys{k}) = m(kys{k});
-                catch ME
-                    handwarning(ME);
+            function cll = impairmentList(map)
+                cll = {};
+                kys = map.keys;
+                for c = 1:length(kys)
+                    if (map(kys{c}))
+                        cll = [cll kys{c}]; end %#ok<AGROW>
                 end
             end
         end
-        function        fprintfException(meth, statsFn, line, textline)
-            if (str2double(getenv('VERBOSITY')))
-                fprintf(['mlsurfer.Parcellations.' meth ' encountered problem in:\n']);
-                fprintf('\tfile->%s, line %i->%s\n', statsFn, line, textline);
+        function aMap  = segnamedThicknessCvsMap(this, hemi, param, terr)
+            %% SEGNAMEDTHICKNESSCVSMAP returns a struct with field:   (this.mapStructFieldname(param))
+            
+            theText = mlio.TextIO.textfileToCell(this.thicknessCvsTableFilename);              
+            aMap = containers.Map;
+            for t = 2:length(theText)
+                if (~isempty(theText{t}))
+                    if (~lstrfind(theText{t}, this.parameterStatsHeader(param)))
+                        textline = theText{t};
+                        if (~strcmp('#', textline(1)))
+                            try
+                                rgxnames = regexp(textline, this.PARAMETER_TABLE_TEXT_EXPR, 'names');
+                                segname  = ['ctx_' hemi '_' ...
+                                               this.clipBeginning( ...
+                                                   this.clipEnding(rgxnames.segname, ['_' param]), 'lh_')];
+                                if (this.isInTerritory(segname, terr))
+                                    aMap(segname) = ...
+                                        struct(this.mapStructFieldname(param), str2double(rgxnames.parameter));
+                                end
+                            catch ME2
+                                this.fprintfException('segnamedThicknessCvsMap', ...
+                                                      this.thicknessCvsTableFilename, t, textline);
+                                if (~lstrfind(textline, 'nan'))
+                                    handerror(ME2);
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end
-    end
-    
-    methods (Access = 'private')
+        function aMap  = segnamedTableFileMap(this, hemi, param, terr)
+            %% SEGNAMEDTABLEFILEMAP returns a struct with field:  (this.mapStructFieldname(param))
+            
+            theText = mlio.TextIO.textfileToCell(this.tableFilename(hemi, param));
+            aMap = containers.Map;
+            for t = 2:length(theText)
+                if (~isempty(theText{t}))
+                    if (~lstrfind(theText{t}, this.parameterStatsHeader(param)))
+                        textline = theText{t};
+                        if (~strcmp('#', textline(1)))
+                            try
+                                rgxnames = regexp(textline, this.PARAMETER_TABLE_TEXT_EXPR, 'names');
+                                segname  = ['ctx_' ...
+                                               this.clipEnding(rgxnames.segname, ['_' param])];
+                                if (this.isInTerritory(segname, terr))
+                                    aMap(segname) = ...
+                                        struct(this.mapStructFieldname(param), str2double(rgxnames.parameter));
+                                end
+                            catch ME2
+                                this.fprintfException('segnamedTableFileMap', statsFn, t, textline);
+                                if (~lstrfind(textline, 'nan'))
+                                    handerror(ME2);
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        function aMap  = segnamedStatsFileMap(this, hemi, param, terr)
+            %% SEGNAMEDSTATSFILEMAP returns a struct with fields:
+            %  segid, volume_mm3, mean, stddev, min, max
+            
+            EXCLUSIONS = '_Unknown';
+            theText    = mlio.TextIO.textfileToCell( ...
+                         this.statsFilename(hemi, param));
+            aMap       = containers.Map;
+            for t = 5:length(theText)
+                if (~isempty(theText{t}))
+                    if (~lstrfind(theText{t}, EXCLUSIONS))
+                        textline = theText{t};
+                        if (~strcmp('#', textline(1)))
+                            try
+                                rgxnames = regexp(textline, this.segstatsExpression, 'names');
+                                if (this.isInTerritory(rgxnames.segname, terr))
+                                    aMap(rgxnames.segname) = ...
+                                        struct('segid',      str2double(rgxnames.segid), ...
+                                               'volume_mm3', str2double(rgxnames.volume_mm3), ...
+                                               'mean',       str2double(rgxnames.mean), ...
+                                               'stddev',     str2double(rgxnames.stddev), ...
+                                               'min',        str2double(rgxnames.min), ...
+                                               'max',        str2double(rgxnames.max));
+                                end
+                            catch ME2                                    
+                                this.fprintfException('segnamedStatsFileMap', ...
+                                                      this.statsFilename(hemi, param), t, textline);
+                                if (~lstrfind(textline, 'nan'))
+                                    handerror(ME2);
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        function aMap  = segidentifiedParameterizedMap(this, hemi, param, terr)
+            %% SEGIDENTIFIEDPARAMETERIZEDMAP returns a struct with fields:
+            %  segname, volume_mm3, mean, stddev, min, max
+            
+            EXCLUSIONS = '_Unknown';
+            theText    = mlio.TextIO.textfileToCell( ...
+                         this.statsFilename(hemi, param));
+            aMap       = containers.Map('KeyType', 'double', 'ValueType', 'any');
+            for t = 5:length(theText)
+                if (~isempty(theText{t}))
+                    if (~lstrfind(theText{t}, EXCLUSIONS))
+                        textline = theText{t};
+                        if (~strcmp('#', textline(1)))
+                            try
+                                rgxnames = regexp(textline, this.segstatsExpression, 'names');
+                                if (this.isInTerritory(rgxnames.segname, terr))
+                                    aMap(this.numericSegId(rgxnames.segid)) = ...
+                                        struct('segname',               rgxnames.segname, ...
+                                               'volume_mm3', str2double(rgxnames.volume_mm3), ...
+                                               'mean',       str2double(rgxnames.mean), ...
+                                               'stddev',     str2double(rgxnames.stddev), ...
+                                               'min',        str2double(rgxnames.min), ...
+                                               'max',        str2double(rgxnames.max));
+                                end
+                            catch ME2                                    
+                                this.fprintfException('segidentifiedParameterizedMap', ...
+                                                      this.statsFilename(hemi, param), t, textline);
+                                if (~lstrfind(textline, 'nan'))
+                                    handerror(ME2);
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        %% MAPPING UTILITIES
+        
         function cache = cachedTerritory(this, terr)
             switch (terr)
                 case 'all'
@@ -447,192 +607,6 @@ classdef Parcellations
             str = ['.aparc.a2009s.' param];
         end
         
-        function aMap  = segnamedDsaMap(this, hemi)
-            shortMap = containers.Map;
-            try
-                theText = mlio.TextIO.textfileToCell(this.dsaTableFilename(hemi));
-                for t = 1:length(theText)
-                    if (~isempty(theText{t}))
-                        if (~strncmp(theText{t}, '#', 1))
-                            textline = theText{t};
-                            rgxnames = regexp(textline, this.DSA_TEXT_EXPR, 'names');
-                            shortMap(rgxnames.territory) = str2double(rgxnames.impaired);
-                        end
-                    end
-                end
-            catch ME %#ok<NASGU>
-                shortMap = containers.Map({'aca' 'mca' 'pca'}, {0 0 0});
-            end
-            impaired = impairmentList(shortMap);
-            
-            aMap          = containers.Map;
-            segid2segname = this.segidentifiedSegnameMap;
-            tmkeys        = segid2segname.keys;
-            for k = 1:length(tmkeys)
-                segname = segid2segname(tmkeys{k});
-                if (lstrfind(segname.territory, impaired))
-                    aMap(segname.segname) = struct('mean',1); 
-                else
-                    aMap(segname.segname) = struct('mean',0);
-                end
-            end
-            
-            function cll = impairmentList(map)
-                cll = {};
-                kys = map.keys;
-                for c = 1:length(kys)
-                    if (map(kys{c}))
-                        cll = [cll kys{c}]; end %#ok<AGROW>
-                end
-            end
-        end
-        function aMap  = segnamedThicknessMap(this, hemi, param, terr)
-            theText = mlio.TextIO.textfileToCell(this.paramTableFilename(hemi, param));
-        
-            try
-                aMap = containers.Map;
-                for t = 2:length(theText)
-                    if (~isempty(theText{t}))
-                        if (~lstrfind(theText{t}, this.parameterStatsHeader(param)))
-                            textline = theText{t};
-                            if (~strcmp('#', textline(1)))
-                                try
-                                    rgxnames = regexp(textline, this.PARAMETER_TABLE_TEXT_EXPR, 'names');
-                                    segname  = ['ctx_' ...
-                                                   this.clipEnding(rgxnames.segname, ['_' param])];
-                                    if (this.isInTerritory(segname, terr))
-                                        aMap(segname) = ...
-                                            struct(this.mapStructFieldname(param), str2double(rgxnames.parameter));
-                                    end
-                                catch ME2
-                                    this.fprintfException('segnamedThicknessMap', statsFn, t, textline);
-                                    if (~lstrfind(textline, 'nan'))
-                                        handerror(ME2);
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            catch ME                
-                this.fprintfException('segnamedThicknessMap', statsFn, t, textline);
-                fprintf('\tSTOPPING\n');
-                handerror(ME);
-            end
-        end
-        function aMap  = segnamedThicknessCvsMap(this, hemi, param, terr)
-            theText = mlio.TextIO.textfileToCell(this.thicknessCvsTableFilename);  
-            
-            try
-                aMap = containers.Map;
-                for t = 2:length(theText)
-                    if (~isempty(theText{t}))
-                        if (~lstrfind(theText{t}, this.parameterStatsHeader(param)))
-                            textline = theText{t};
-                            if (~strcmp('#', textline(1)))
-                                try
-                                    rgxnames = regexp(textline, this.PARAMETER_TABLE_TEXT_EXPR, 'names');
-                                    segname  = ['ctx_' hemi '_' ...
-                                                   this.clipBeginning( ...
-                                                       this.clipEnding(rgxnames.segname, ['_' param]), 'lh_')];
-                                    if (this.isInTerritory(segname, terr))
-                                        aMap(segname) = ...
-                                            struct(this.mapStructFieldname(param), str2double(rgxnames.parameter));
-                                    end
-                                catch ME2
-                                    this.fprintfException('segnamedThicknessCvsMap', statsFn, t, textline);
-                                    if (~lstrfind(textline, 'nan'))
-                                        handerror(ME2);
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            catch ME
-                this.fprintfException('segnamedThicknessCvsMap', statsFn, t, textline);
-                fprintf('\tSTOPPING\n');
-                handerror(ME);
-            end
-        end
-        function aMap  = segnamedParameterizedMap(this, hemi, param, terr)
-            EXCLUSIONS = '_Unknown';
-            statsFn    = this.statsFilename(hemi, param);
-            theText    = mlio.TextIO.textfileToCell(statsFn);
-            
-            try
-                aMap  = containers.Map;
-                for t = 5:length(theText)
-                    if (~isempty(theText{t}))
-                        if (~lstrfind(theText{t}, EXCLUSIONS))
-                            textline = theText{t};
-                            if (~strcmp('#', textline(1)))
-                                try
-                                    rgxnames = regexp(textline, this.segstatsExpression, 'names');
-                                    if (this.isInTerritory(rgxnames.segname, terr))
-                                        aMap(rgxnames.segname) = ...
-                                            struct('segid',      str2double(rgxnames.segid), ...
-                                                   'volume_mm3', str2double(rgxnames.volume_mm3), ...
-                                                   'mean',       str2double(rgxnames.mean), ...
-                                                   'stddev',     str2double(rgxnames.stddev), ...
-                                                   'min',        str2double(rgxnames.min), ...
-                                                   'max',        str2double(rgxnames.max));
-                                    end
-                                catch ME2                                    
-                                    this.fprintfException('segnamedParameterizedMap', statsFn, t, textline);
-                                    if (~lstrfind(textline, 'nan'))
-                                        handerror(ME2);
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            catch ME                
-                this.fprintfException('segnamedParameterizedMap', statsFn, t, textline);
-                fprintf('\tSTOPPING\n');
-                handerror(ME);
-            end
-        end
-        function aMap  = segidentifiedParameterizedMap(this, hemi, param, terr)
-            EXCLUSIONS = '_Unknown';
-            statsFn    = this.statsFilename(hemi, param);
-            theText    = mlio.TextIO.textfileToCell(statsFn);
-            
-            try
-                aMap  = containers.Map('KeyType', 'double', 'ValueType', 'any');
-                for t = 5:length(theText)
-                    if (~isempty(theText{t}))
-                        if (~lstrfind(theText{t}, EXCLUSIONS))
-                            textline = theText{t};
-                            if (~strcmp('#', textline(1)))
-                                try
-                                    rgxnames = regexp(textline, this.segstatsExpression, 'names');
-                                    if (this.isInTerritory(rgxnames.segname, terr))
-                                        aMap(this.numericSegId(rgxnames.segid)) = ...
-                                            struct('segname',               rgxnames.segname, ...
-                                                   'volume_mm3', str2double(rgxnames.volume_mm3), ...
-                                                   'mean',       str2double(rgxnames.mean), ...
-                                                   'stddev',     str2double(rgxnames.stddev), ...
-                                                   'min',        str2double(rgxnames.min), ...
-                                                   'max',        str2double(rgxnames.max));
-                                    end
-                                catch ME2                                    
-                                    this.fprintfException('segidentifiedParameterizedMap', statsFn, t, textline);
-                                    if (~lstrfind(textline, 'nan'))
-                                        handerror(ME2);
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            catch ME                
-                this.fprintfException('segidentifiedParameterizedMap', statsFn, t, textline);
-                fprintf('\tSTOPPING\n');
-                handerror(ME);
-            end
-        end
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 

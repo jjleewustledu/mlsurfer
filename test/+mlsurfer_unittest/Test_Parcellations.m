@@ -15,8 +15,8 @@ classdef Test_Parcellations < matlab.unittest.TestCase
 
 	properties 
  		testObj 
-        colorLUTFilename = '/Volumes/InnominateHD3/cvl/np755/JJLColorLUTshort_20151002.txt';
-        sessionPath = '/Volumes/InnominateHD3/cvl/np755/mm01-020_p7377_2009feb5' 
+        colorLUTFilename = '/Volumes/PassportStudio2/cvl/np755/JJLColorLUTshort_20151002.txt';
+        sessionPath = '/Volumes/PassportStudio2/cvl/np755/mm01-020_p7377_2009feb5' 
         cerebLabelNames = { ...
             'Cerebellum-White-Matter' 'Cerebellum-Cortex'};
         ctxLabelNames = { ...
@@ -49,20 +49,23 @@ classdef Test_Parcellations < matlab.unittest.TestCase
         %% SEGNAMEDSTATS METHODS
         
         function test_segnamedStatsMap_PET_volume(this)
-            map = this.testObj.segnamedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'volume');
-            this.assertEqual(1784,   map('ctx_lh_G_and_S_transv_frontopol').volume_mm3);
+            map = this.testObj.segnamedStatsMap( ...
+                  'lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'volume');
+            this.assertEqual(map('ctx_lh_G_and_S_transv_frontopol').volume_mm3, 1784);
         end
         function test_segnamedStatsMap_PET_std(this)
-            map = this.testObj.segnamedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'std');
+            map = this.testObj.segnamedStatsMap( ...
+                  'lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'std');
             kys = map.keys;
-            this.assertEqual('ctx_lh_G_and_S_cingul-Ant', kys{1});
-            this.assertEqual(0.3169,                     map('ctx_lh_G_and_S_transv_frontopol').stddev);
+            this.assertEqual(kys{1}, 'ctx_lh_G_and_S_cingul-Ant');
+            this.assertEqual(map('ctx_lh_G_and_S_transv_frontopol').stddev, 0.3169);
         end
         function test_segnamedStatsMap_PET_mean(this)
-            map = this.testObj.segnamedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca');
+            map = this.testObj.segnamedStatsMap( ...
+                  'lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca');
             kys = map.keys;
-            this.assertEqual('ctx_lh_G_and_S_cingul-Ant', kys{1});
-            this.assertEqual(3.4944,                    map('ctx_lh_G_and_S_transv_frontopol').mean);
+            this.assertEqual(kys{1}, 'ctx_lh_G_and_S_cingul-Ant');
+            this.assertEqual(map('ctx_lh_G_and_S_transv_frontopol').mean, 3.4944);
         end
         function test_segnamedStatsMap(this)
             map = this.testObj.segnamedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'all');
@@ -79,19 +82,22 @@ classdef Test_Parcellations < matlab.unittest.TestCase
         %% SEGIDENTIFIEDSTATS METHODS
         
         function test_segidentifiedStatsMap_PET_volume(this)
-            map = this.testObj.segidentifiedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'volume');
+            map = this.testObj.segidentifiedStatsMap( ...
+                  'lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'volume');
             this.assertEqual(map(11105), 1784);
         end
         function test_segidentifiedStatsMap_PET_std(this)
-            map = this.testObj.segidentifiedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'std');
+            map = this.testObj.segidentifiedStatsMap( ...
+                  'lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca', 'std');
             kys = map.keys;
-            this.assertEqual(kys{1}, 11101);
+            this.assertEqual(kys{1},     11101);
             this.assertEqual(map(11105), 0.3169);        
         end
         function test_segidentifiedStatsMap_PET_mean(this)
-            map = this.testObj.segidentifiedStatsMap('lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca');
+            map = this.testObj.segidentifiedStatsMap( ...
+                  'lh', mlsurfer.PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX, 'aca');
             kys = map.keys;
-            this.assertEqual(kys{1}, 11101);
+            this.assertEqual(kys{1},     11101);
             this.assertEqual(map(11105), 3.4944);  
         end        
         function test_segidentifiedStatsMap_cvs(this)
@@ -112,33 +118,6 @@ classdef Test_Parcellations < matlab.unittest.TestCase
             this.assertEqual(kys{1},     11101);
             this.assertEqual(map(11105), 2.619);
         end    
-        function test_segidentifiedSegnameMap(this)
-            theMap = this.testObj.segidentifiedSegnameMap;
-            
-            this.assertEqual('Left-Cerebellum-White-Matter', theMap(7).segname);
-            this.assertEqual([220 248 164 0], theMap(7).RGBA);
-            this.assertEqual('cereb', theMap(7).territory);
-            
-            this.assertEqual('Right-Cerebellum-White-Matter', theMap(46).segname);
-            this.assertEqual([220 248 164 0], theMap(46).RGBA);
-            this.assertEqual('cereb', theMap(46).territory);
-            
-            this.assertEqual('ctx_lh_G_and_S_frontomargin', theMap(11101).segname);
-            this.assertEqual([23 220 60 0], theMap(11101).RGBA);
-            this.assertEqual('aca', theMap(11101).territory);
-            
-            this.assertEqual('ctx_lh_S_temporal_transverse', theMap(11175).segname);
-            this.assertEqual([221 60 60 0], theMap(11175).RGBA);
-            this.assertEqual('mca_min', theMap(11175).territory);
-            
-            this.assertEqual('ctx_rh_G_and_S_frontomargin', theMap(12101).segname);
-            this.assertEqual([23 220 60 0], theMap(12101).RGBA);
-            this.assertEqual('aca', theMap(12101).territory);
-            
-            this.assertEqual('ctx_rh_S_temporal_transverse', theMap(12175).segname);
-            this.assertEqual([221 60 60 0], theMap(12175).RGBA);
-            this.assertEqual('mca_min', theMap(12175).territory);            
-        end
         
         %% UTILITY METHODS
         
@@ -152,7 +131,7 @@ classdef Test_Parcellations < matlab.unittest.TestCase
             import mlpet.* mlsurfer.*;
             this.assertEqual( ...
                 this.testObj.statsFilename('lh', PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX), ...
-                fullfile(this.fslPath,    ['lh_' PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX '_on_t1_default_normByDose_on_fsanatomical.stats']));
+                fullfile(this.fslPath,    ['lh_' PETSegstatsBuilder.HO_MEANVOL_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX '_normByDose_on_fsanatomical.stats']));
         end
         function test_ctor(this)
             this.assertTrue(isa(this.testObj, 'mlsurfer.Parcellations'));

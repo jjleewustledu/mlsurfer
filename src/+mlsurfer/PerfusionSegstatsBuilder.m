@@ -104,13 +104,14 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             ic   = this.perfMask_;
         end
         function this = set.perfMask(this, pm)
+            import mlsurfer.*;
             pm = imcast(pm, 'mlfourd.NIfTI');
-            assert(strcmp([this.PERF_MASK_FILEPREFIX '_on_' this.T1_FILEPREFIX], pm.fileprefix));
+            assert(strcmp([this.PERF_MASK_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX], pm.fileprefix));
             
             bldr           = this.clone;
             bldr.product   = pm;
-            bldr.dat       = fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]);
-            vtor           = mlsurfer.SurferVisitor;
+            bldr.dat       = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
+            vtor           = SurferVisitor;
             bldr           = vtor.visitVol2fsanatomical(bldr);
             this.perfMask_ = bldr.product;
         end
@@ -128,13 +129,14 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             ic   = this.perfTemplate_;
         end
         function this = set.perfTemplate(this, t)
+            import mlsurfer.*;
             t = imcast(t, 'mlfourd.NIfTI');
-            assert(strcmp([this.PERF_TEMPLATE_FILEPREFIX '_on_' this.T1_FILEPREFIX] , t.fileprefix));
+            assert(strcmp([this.PERF_TEMPLATE_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX] , t.fileprefix));
             
             bldr               = this.clone;
             bldr.product       = t;
-            bldr.dat           = fullfile(this.fslPath, [this.T1_FILEPREFIX this.DAT_SUFFIX]);
-            vtor               = mlsurfer.SurferVisitor;
+            bldr.dat           = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
+            vtor               = SurferVisitor;
             bldr               = vtor.visitVol2fsanatomical(bldr);
             this.perfTemplate_ = bldr.product;
         end
@@ -180,8 +182,9 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
     
 	methods 
         function statfns = fsanatomicalStats(this, dat_fqfn)
+            import mlsurfer.* mlpatterns.*;
             if (~exist('dat_fqfn', 'var'))
-                dat_fqfn = fullfile(this.fslPath, 't1_default_to_fsanatomical.dat');
+                dat_fqfn = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             end
             this.dat = dat_fqfn;
             if (~lexist(this.dat))  
@@ -189,7 +192,7 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             end
             this.product = this.alignPerfusionParams;
             
-            statfns       = mlpatterns.CellArrayList;
+            statfns       = CellArrayList;
             prds          = imcast(this.product, 'mlfourd.ImagingComponent');
             this.perfMask = prds.get(prds.length);
             for p = 1:length(prds)
@@ -205,9 +208,10 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
  			%  Usage:  this = PerfusionSegstatsBuilder() 
 
             this = this@mlsurfer.SurferBuilderPrototype(varargin{:});
+            import mlsurfer.*;
             this = this.makePerfTemplate;
             this.referenceImage = mlfourd.ImagingContext.load( ...
-                                  fullfile(this.fslPath, filename(this.T1_FILEPREFIX)));
+                                  fullfile(this.fslPath, filename(SurferFilesystem.T1_FILEPREFIX)));
             this.product        = this.splitPerfusionParams(this.perfParamsFqfilename);
             this.perfComposite  = this.product;
         end 
@@ -263,13 +267,14 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             splitup = splitup.add(this.perfMask);
             splitup = imcast(splitup, 'mlfourd.ImagingContext');
         end      
-        function prod    = alignPerfusionParams(this)            
+        function prod    = alignPerfusionParams(this)  
+            import mlsurfer.*;
             mrad = mlmr.MRAlignmentDirector.factory( ...
                         'product', this.product, 'referenceImage', this.referenceImage);
-            defaultT2Image = fullfile(this.fslPath, filename(this.T2_FILEPREFIX));            
+            defaultT2Image = fullfile(this.fslPath, filename(SurferFilesystem.T2_FILEPREFIX));            
             if (lexist(defaultT2Image, 'file'))
                 this.referenceT2Image = mrad.alignT2( ...
-                                        fullfile(this.fslPath, filename([this.T2_FILEPREFIX '_on_' this.T1_FILEPREFIX])));
+                                        fullfile(this.fslPath, filename([SurferFilesystem.T2_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX])));
                 prod                  = mrad.alignT2starOnT2( ...
                                         this.product, this.referenceT2Image);
             else
