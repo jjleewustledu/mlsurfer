@@ -11,7 +11,7 @@ classdef SurferRegistry < mlpatterns.Singleton
 
 	properties
         datSuffix   = '_to_fsanatomical.dat'
-        statsSuffix = '_on_fsanatomical.stats'
+        statsSuffix = '_on_T1.stats'
  		t1Prefix    = 't1_default'
         t2Prefix    = 't2_default'
         

@@ -19,7 +19,7 @@ classdef Parcellations
         HEMIS           = { 'lh' 'rh' }
         PARAMS          = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' ...
                             'adc_default' 'dwi_default_meanvol' 'cvs' 'dsa' ...
-                            'oefnq_default_161616fwhh' }
+                            'oefnq_default_161616fwhh' 'oo_sumt_737353fwhh' 'ho_sumt_737353fwhh' }
         PARAMS2         = { 'ho' 'oo' 'oc' }
         PARAMS3         = { 'thickness' 'thicknessStd' 'area' 'volume' 'meancurv' }
         PARAMS_ALL      = [ mlsurfer.Parcellations.PARAMS ...
@@ -69,12 +69,8 @@ classdef Parcellations
             
             import mlsurfer.*;
             assert(strcmp('lh', hemi) || strcmp('rh', hemi));
-            assert(ischar(param)); 
-            if (lstrfind(param, this.PARAMS2))
-                fqfn = fullfile(this.surferFilesystem.segstats_fqfn(hemi, [param '_on_' SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX]));
-            else               
-                fqfn = fullfile(this.surferFilesystem.segstats_fqfn(hemi, [param '_on_' SurferFilesystem.T1_FILEPREFIX]));
-            end
+            assert(ischar(param));             
+            fqfn = fullfile(this.surferFilesystem.segstats_fqfn(hemi, param));
         end
         function fqfn = tableFilename(this, hemi, param)
             %% TABLEFILENAME returns the table-file of thicknesses for the subject identified by the ctor
@@ -588,7 +584,7 @@ classdef Parcellations
                 this.segstatsRgx('range')];
         end
         function rgx   = segstatsRgx(~, lbl)
-            rgx = ['\s+(?<' lbl '>(\-|)\d+\.?\d*)'];
+            rgx = ['\s+(?<' lbl '>(\-|)(\d+\.?\d*|nan))'];
         end        
         function str   = mapStructFieldname(~, param)
             if (lstrfind(lower(param), 'std'))
