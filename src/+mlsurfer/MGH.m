@@ -34,17 +34,17 @@ classdef MGH <  mlio.IOInterface
         end
         function this = set.filepath(this, pth)
             assert(ischar(pth));
-            this.nifti_.filepath = pth;
+            this.niftid_.filepath = pth;
         end
         function pth  = get.filepath(this)
-            pth = this.nifti_.filepath;
+            pth = this.niftid_.filepath;
         end
         function this = set.fileprefix(this, fp)
             assert(ischar(fp));
-            [~,this.nifti_.fileprefix] = gzfileparts(fp);
+            [~,this.niftid_.fileprefix] = gzfileparts(fp);
         end
         function fp   = get.fileprefix(this)
-            fp = this.nifti_.fileprefix;
+            fp = this.niftid_.fileprefix;
         end
         
         function fs   = get.filesuffix(this)
@@ -52,13 +52,13 @@ classdef MGH <  mlio.IOInterface
         end
         
         function this = set.fqfilename(this, fqfn)
-            [this.nifti_.filepath,this.nifti_.fileprefix] = gzfileparts(fqfn);
+            [this.niftid_.filepath,this.niftid_.fileprefix] = gzfileparts(fqfn);
         end
         function fqfn = get.fqfilename(this)
-            fqfn = [this.nifti_.fqfileprefix this.filesuffix];
+            fqfn = [this.niftid_.fqfileprefix this.filesuffix];
         end
         function this = set.fqfileprefix(this, fqfp)
-            [this.nifti_.filepath, this.nifti_.fileprefix] = gzfileparts(fqfp);
+            [this.niftid_.filepath, this.niftid_.fileprefix] = gzfileparts(fqfp);
         end
         function fqfp = get.fqfileprefix(this)
             fqfp = fullfile(this.filepath, this.fileprefix);
@@ -77,10 +77,10 @@ classdef MGH <  mlio.IOInterface
         end
         function this = set.noclobber(this, nc)
             assert(islogical(nc));
-            this.nifti_.noclobber = nc;
+            this.niftid_.noclobber = nc;
         end
         function tf   = get.noclobber(this)
-            tf = this.nifti_.noclobber;
+            tf = this.niftid_.noclobber;
         end
     end
     
@@ -95,11 +95,11 @@ classdef MGH <  mlio.IOInterface
             assert(ischar(filestr));
             if (lstrfind(filestr, {'.mgz' '.mgh'}))
                 this.mri_convert(filestr); 
-                this.nifti_ = NIfTI.load( ...
-                              this.mghFilename2niiFilename(filestr));
+                this.niftid_ = NIfTId.load( ...
+                               this.mghFilename2niiFilename(filestr));
                 return
             end
-            this.nifti_ = NIfTI.load(filestr);
+            this.niftid_ = NIfTId.load(filestr);
         end
         function niifn = mghFilename2niiFilename(mghfn)
             fqfp  = mghfn(1:end-length(mlsurfer.MGH.FILETYPE_EXT));
@@ -111,9 +111,9 @@ classdef MGH <  mlio.IOInterface
     
     methods
         function        save(this) 
-            this.nifti_.save;
+            this.niftid_.save;
             this.mri_convert( ...
-                 this.nifti_.fqfilename);
+                 this.niftid_.fqfilename);
         end
         function this = saveas(this, fqfn)
             this.fqfilename = fqfn;
@@ -128,13 +128,18 @@ classdef MGH <  mlio.IOInterface
         
         function this = MGH(varargin)
             %% MGH
-            %  Usage:   obj = MGH([mgh_object, nifti_object);
+            %  Usage:   obj = MGH([mgh_object, niftid_object);
             
             if (nargin > 0)
                 if (isa(varargin{1}, 'mlsurfer.MGH'))
-                    this.nifti_ = varargin{1}.nifti_;
+                    this.niftid_ = varargin{1}.niftid_;
                 end
                 if (isa(varargin{1}, 'mlfourd.NIfTIInterface'))
+                    varargin{1}.save;
+                    this = this.load( ...
+                           this.mri_convert(varargin{1}.fqfilename));
+                end
+                if (isa(varargin{1}, 'mlfourd.INIfTI'))
                     varargin{1}.save;
                     this = this.load( ...
                            this.mri_convert(varargin{1}.fqfilename));
@@ -146,7 +151,7 @@ classdef MGH <  mlio.IOInterface
     %% PRIVATE
     
     properties (Access = 'private')
-        nifti_
+        niftid_
     end
     
     methods (Static, Access = 'private')        
