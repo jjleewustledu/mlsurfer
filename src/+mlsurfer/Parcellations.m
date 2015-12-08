@@ -16,17 +16,18 @@ classdef Parcellations
  	%% $Id$ 
  	 
     properties (Constant)
-        HEMIS           = { 'lh' 'rh' }
-        PARAMS          = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' ...
-                            'adc_default' 'dwi_default_meanvol' 'cvs' 'dsa' ...
-                            'oefnq_default_161616fwhh' 'oo_sumt_737353fwhh' 'ho_sumt_737353fwhh' }
-        PARAMS2         = { 'ho' 'oo' 'oc' }
-        PARAMS3         = { 'thickness' 'thicknessStd' 'area' 'volume' 'meancurv' }
-        PARAMS_ALL      = [ mlsurfer.Parcellations.PARAMS ...
-                            mlsurfer.Parcellations.PARAMS2 ...
-                            mlsurfer.Parcellations.PARAMS3 ]
-        TERRITORIES     = { 'all' 'all_aca_mca' 'aca' 'aca_min' 'aca_max' 'mca' 'mca_min' 'mca_max' 'pca' 'pca_min' 'pca_max' 'cereb' }
-        STATISTICS      = { 'mean' 'stddev' 'std' 'min' 'max' 'range' 'volume' }
+        HEMIS             = { 'lh' 'rh' }
+        PARAMS            = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' ...
+                              'adc_default' 'dwi_default_meanvol' 'cvs' 'dsa' ...
+                              'oefnq_default_161616fwhh' 'oo_sumt_737353fwhh' 'ho_sumt_737353fwhh' }
+        PARAMS2           = { 'ho' 'oo' 'oc' }
+        PARAMS3           = { 'thickness' 'thicknessStd' 'area' 'volume' 'meancurv' }
+        PARAMS_ALL        = [ mlsurfer.Parcellations.PARAMS ...
+                              mlsurfer.Parcellations.PARAMS2 ...
+                              mlsurfer.Parcellations.PARAMS3 ]                        
+        SEGNAME_TO_IGNORE = { 'Medial_wall' };        
+        STATISTICS        = { 'mean' 'stddev' 'std' 'min' 'max' 'range' 'volume' }        
+        TERRITORIES       = { 'all' 'all_aca_mca' 'aca' 'aca_min' 'aca_max' 'mca' 'mca_min' 'mca_max' 'pca' 'pca_min' 'pca_max' 'cereb' }
         
         COLOR_LUT_FILENAME = '/Volumes/SeagateBP4/cvl/np755/JJLColorLUTshort_20151002.txt'
     end
@@ -126,7 +127,7 @@ classdef Parcellations
             addOptional(p, 'statistic', 'mean',         @(x) lstrfind(x, this.STATISTICS));
             parse(p, hemi, param, varargin{:});  
             
-            import mlsurfer.*;
+            import mlsurfer.*; 
             if (lstrfind(param, { 'thicknessStd' 'thickness' 'area' 'volume' 'meancurv' 'cvs' 'dsa' })) 
                 %% SPECIAL CASES
                 
@@ -141,17 +142,18 @@ classdef Parcellations
                             aMap(segids{s}) = segname2stats(segname);
                         end
                     catch ME2
-                        if (~lstrfind(segname, 'Medial_wall') && ...
-                            ~lstrfind(mlsurfer.PETSegstatsBuilder.OC_FILEPREFIX, param)) %% known to be missing in imaging data
+                        if (~lstrfind(segname, this.SEGNAME_TO_IGNORE) && ...
+                            ~lstrfind(param, PETSegstatsBuilder.OC_FILEPREFIX)) %% known to be missing in imaging data
                             this.fprintfException('segidentifiedStatsMap', '[table-file for dsa, cvs, thickness, thicknessstd]', ...
                                                    segids{s}, [segname '...']);
                             handwarning(ME2);
                         end
                     end
-                end
-            else                
-                aMap = this.segidentifiedParameterizedMap(hemi, param, p.Results.terr);
-            end            
+                end                
+                aMap = Parcellations.singleStatMap(aMap, p.Results.statistic);
+                return
+            end                
+            aMap = this.segidentifiedParameterizedMap(hemi, param, p.Results.terr);
             aMap = Parcellations.singleStatMap(aMap, p.Results.statistic);
         end        
         function aMap = segnamedStatsMap(this, hemi, param, varargin)
@@ -280,51 +282,53 @@ classdef Parcellations
                         this.segidentifiedSegnameMap_( ...
                              this.numericSegId(rgxnames.segid)) = ...
                                    struct('segname', rgxnames.segname, 'RGBA', str2num(rgxnames.rgba), 'territory', rgxnames.territory); %#ok<ST2NM>
-                        switch (rgxnames.territory)
-                            case 'aca'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
-                                this.cachedAcaLabels_    = [this.cachedAcaLabels_    rgxnames.segname];
-                                this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
-                            case 'aca_min'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
-                                this.cachedAcaLabels_    = [this.cachedAcaLabels_    rgxnames.segname];
-                                this.cachedAcaMinLabels_ = [this.cachedAcaMinLabels_ rgxnames.segname];
-                                this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
-                            case 'mca'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
-                                this.cachedMcaLabels_    = [this.cachedMcaLabels_    rgxnames.segname];
-                                this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
-                            case 'mca_min'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
-                                this.cachedMcaLabels_    = [this.cachedMcaLabels_    rgxnames.segname];
-                                this.cachedMcaMinLabels_ = [this.cachedMcaMinLabels_ rgxnames.segname];
-                                this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
-                            case 'pca'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedPcaLabels_    = [this.cachedPcaLabels_    rgxnames.segname];
-                                this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
-                            case 'pca_min'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedPcaLabels_    = [this.cachedPcaLabels_    rgxnames.segname];
-                                this.cachedPcaMinLabels_ = [this.cachedPcaMinLabels_ rgxnames.segname];
-                                this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
-                            case 'border_aca_mca'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
-                                this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
-                                this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
-                            case 'border_mca_pca'
-                                this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
-                                this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
-                                this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
-                            case 'sinus'
-                                this.cachedSinusLabels_  = [this.cachedSinusLabels_  rgxnames.segname];
-                            case 'cereb'
-                                this.cachedCerebLabels_  = [this.cachedCerebLabels_  rgxnames.segname];
+                        if (~lstrfind(rgxnames.segname, this.SEGNAME_TO_IGNORE))
+                            switch (rgxnames.territory)
+                                case 'aca'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
+                                    this.cachedAcaLabels_    = [this.cachedAcaLabels_    rgxnames.segname];
+                                    this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
+                                case 'aca_min'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
+                                    this.cachedAcaLabels_    = [this.cachedAcaLabels_    rgxnames.segname];
+                                    this.cachedAcaMinLabels_ = [this.cachedAcaMinLabels_ rgxnames.segname];
+                                    this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
+                                case 'mca'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
+                                    this.cachedMcaLabels_    = [this.cachedMcaLabels_    rgxnames.segname];
+                                    this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
+                                case 'mca_min'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
+                                    this.cachedMcaLabels_    = [this.cachedMcaLabels_    rgxnames.segname];
+                                    this.cachedMcaMinLabels_ = [this.cachedMcaMinLabels_ rgxnames.segname];
+                                    this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
+                                case 'pca'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedPcaLabels_    = [this.cachedPcaLabels_    rgxnames.segname];
+                                    this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
+                                case 'pca_min'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedPcaLabels_    = [this.cachedPcaLabels_    rgxnames.segname];
+                                    this.cachedPcaMinLabels_ = [this.cachedPcaMinLabels_ rgxnames.segname];
+                                    this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
+                                case 'border_aca_mca'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
+                                    this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
+                                    this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
+                                case 'border_mca_pca'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
+                                    this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
+                                case 'sinus'
+                                    this.cachedSinusLabels_  = [this.cachedSinusLabels_  rgxnames.segname];
+                                case 'cereb'
+                                    this.cachedCerebLabels_  = [this.cachedCerebLabels_  rgxnames.segname];
+                            end
                         end
                     end
                 end
