@@ -253,8 +253,8 @@ classdef SurferRois < mlrois.AbstractRois
             
             p = inputParser;
             addRequired(  p, 'paramMap',                @(x) isa(x, 'containers.Map') & ~isempty(x));
-            addParamValue(p, 'paramLabel', 'parameter', @ischar);
-            addParamValue(p, 'threshold',  0.05,        @isnumeric);
+            addParameter(p, 'paramLabel', 'parameter', @ischar);
+            addParameter(p, 'threshold',  0.05,        @isnumeric);
             parse(p, paramMap, varargin{:});
             
             keys    = p.Results.paramMap.keys;
@@ -278,7 +278,7 @@ classdef SurferRois < mlrois.AbstractRois
             paramParced.img(:,:,:,1) = means;
             %paramParced.img(:,:,:,2) = stddevs;
             paramParced.save;
-            paramParced = imcast(paramParced, 'mlfourd.ImagingContext');
+            paramParced = mlfourd.ImagingContext(paramParced);
         end 
         function [imParced,  this]     = parcellateImage(this, imobj)
             %% PARCELLATEIMAGE using aparc_a2009s+aseg as a source of ROIs for any structurally aligned image-object ...
@@ -298,7 +298,7 @@ classdef SurferRois < mlrois.AbstractRois
                 imParced.img = ...
                     imParced.img + mean(imobj.img(roi.img ~= 0)) * double(roi.img); % for partial-volume ROIs
             end
-            imParced = imcast(imParced, 'mlfourd.ImagingContext');
+            imParced = mlfourd.ImagingContext(imParced);
             imParced.nifti.save;
         end  
         function [idx, this]           = parcellateIndices(this)

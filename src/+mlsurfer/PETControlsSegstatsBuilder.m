@@ -34,7 +34,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
 
     methods %% GET/SET
         function this = set.hoMeanvol(this, obj)
-            this.hoMeanvol_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.hoMeanvol_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.hoMeanvol(this)
             if (~isempty(this.hoMeanvol_))
@@ -64,7 +64,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             end
         end
         function this = set.oc(this, obj)
-            this.oc_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.oc_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.oc(this)
             if (~isempty(this.oc_))
@@ -75,7 +75,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             fp = ['r' this.pNumber 'oc1_g3'];
         end
         function this = set.ooMeanvol(this, obj)
-            this.ooMeanvol_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.ooMeanvol_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.ooMeanvol(this)
             if (~isempty(this.ooMeanvol_))
@@ -106,7 +106,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                   'PETControlsSegstatsBuilder.get.tr was requested, but this class does not implement tr');
         end
         function this = set.tr(this, obj)
-            this.tr_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.tr_ = mlfourd.ImagingContext(obj);
         end
     end
     
@@ -190,7 +190,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(this.t1Prefix))), ...
                 'xfm',                                fullfile(this.fslPath, [this.hoFileprefix '_on_' this.t1Prefix '.mat']));
             petAlignBldr = petAlignBldr.applyXfm;
-            prd          = imcast(this.product, 'mlfourd.ImagingComponent');
+            prd          = mlfourd.ImagingContext(this.product);
             this.product = prd.add(petAlignBldr.product); 
         end
         function fp      = constructOEF(this)
@@ -208,7 +208,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             cd(pwd0);
         end
         function statfns = fsanatomicalStatsForProducts(this, prods)
-            prods = imcast(prods, 'mlfourd.ImagingComponent');
+            prods = mlfourd.ImagingContext(prods);
             this  = this.ensureDat;
             
             import mlpatterns.* mlsurfer.*;
@@ -220,7 +220,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 if (~lstrfind(aProd.fileprefix, this.oefnqFileprefix))
                     aProd = this.normalizePETByTotalDose(aProd); end
                 [~,lhstat,rhstat] = this.surferRegisteredSegstats( ...
-                                    imcast(aProd, 'mlfourd.ImagingContext'), ...
+                                    mlfourd.ImagingContext(aProd), ...
                                     ':colormap=heat:heatscale=0,2,6:heatscaleoptions=truncate:opacity=0.5');
                 statfns.add(lhstat);
                 statfns.add(rhstat);
@@ -243,7 +243,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             product.img        = product.img * prod(product.size) / product.dipsum;
             product.fileprefix = [product.fileprefix this.NORM_BY_DOSE_SUFFIX];
             product.save;
-            product            = imcast(product, 'mlfourd.ImagingContext');
+            product            = mlfourd.ImagingContext(product);
         end
         
  		function this    = PETControlsSegstatsBuilder(varargin)

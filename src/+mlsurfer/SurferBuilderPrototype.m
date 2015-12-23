@@ -117,11 +117,11 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             this.dat_ = x;
         end
         function this = set.mask(this, img)
-            this.mask_ = imcast(img, 'mlfourd.ImagingContext');
+            this.mask_ = mlfourd.ImagingContext(img);
         end
         function img  = get.mask(this)
             assert(~isempty(this.mask_));
-            img = imcast(this.mask_, 'mlfourd.ImagingContext');
+            img = mlfourd.ImagingContext(this.mask_);
         end
         function ic   = get.orig(this)
             ic = mlfourd.ImagingContext.load( ...
@@ -133,28 +133,28 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
         end
         function img  = get.product(this)
             assert(~isempty(this.product_));
-            img = imcast(this.product_, 'mlfourd.ImagingContext');
+            img = mlfourd.ImagingContext(this.product_);
         end
         function this = set.referenceImage(this, img)
-            this.referenceImage_ = imcast(img, 'mlfourd.ImagingContext');
+            this.referenceImage_ = mlfourd.ImagingContext(img);
         end
         function img  = get.referenceImage(this)
             assert(~isempty(this.referenceImage_));
-            img = imcast(this.referenceImage_, 'mlfourd.ImagingContext');
+            img = mlfourd.ImagingContext(this.referenceImage_);
         end
         function this = set.roi(this, img)
-            this.roi_ = imcast(img, 'mlfourd.ImagingContext');
+            this.roi_ = mlfourd.ImagingContext(img);
         end
         function img  = get.roi(this)
             assert(~isempty(this.roi_));
-            img = imcast(this.roi_, 'mlfourd.ImagingContext');
+            img = mlfourd.ImagingContext(this.roi_);
         end
         function this = set.segmentation(this, img)
-            this.segmentation_ = imcast(img, 'mlfourd.ImagingContext');
+            this.segmentation_ = mlfourd.ImagingContext(img);
         end
         function img  = get.segmentation(this)
             assert(~isempty(this.segmentation_));
-            img = imcast(this.segmentation_, 'mlfourd.ImagingContext');
+            img = mlfourd.ImagingContext(this.segmentation_);
         end
         function this = set.segstats(this, ss)
             assert(ischar(ss));
@@ -167,12 +167,12 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             ss = this.segstats_;
         end
         function this = set.structural(this, img)
-            this.structural_ = imcast(img, 'mlfourd.ImagingContext');
+            this.structural_ = mlfourd.ImagingContext(img);
         end
         function img  = get.structural(this)
             if (isempty(this.structural_))
-                img = imcast(this.referenceImage_, 'mlfourd.ImagingContext'); return; end
-            img = imcast(this.structural_, 'mlfourd.ImagingContext');
+                img = mlfourd.ImagingContext(this.referenceImage_); return; end
+            img = mlfourd.ImagingContext(this.structural_);
         end
         function this = set.targetId(this, id)
             assert(ischar(id));
@@ -190,7 +190,7 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             ic = mlfourd.ImagingContext.load(fullfile(this.fslPath, filename(SurferFilesystem.T2_FILEPREFIX)));
         end
         function this = set.t2(this, obj)
-            this.t2_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.t2_ = mlfourd.ImagingContext(obj);
         end
         function id   = get.targetId(this)
             assert(~isempty(this.targetId_));
@@ -206,9 +206,8 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
         function freeviewAll(sessPth)
             import mlsurfer.*;
             this = SurferBuilderPrototype('SessionPath', sessPth);
-            this.product = imcast( ...
-                fullfile(this.sessionPath, 'fsl', filename(SurferFilesystem.T1_FILEPREFIX)), ...
-                'mlfourd.ImagingContext');
+            this.product = mlfourd.ImagingContext( ...
+                fullfile(this.sessionPath, 'fsl', filename(SurferFilesystem.T1_FILEPREFIX)));
             cd(this.sessionPath);
             vtor = SurferVisitor.createFromBuilder(this);
             vtor.visitFreeviewAll(this);
@@ -341,16 +340,14 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             if (~isempty(p.Results.mask))
                 this.mask_           = p.Results.mask;
             else
-                this.mask_ = imcast( ....
-                    fullfile(this.fslPath, filename('bt1_default_mask')), ...
-                    'mlfourd.ImagingContext');
+                this.mask_ = mlfourd.ImagingContext( ....
+                    fullfile(this.fslPath, filename('bt1_default_mask')));
             end
             if (~isempty(p.Results.structural))
                 this.structural_     = p.Results.structural;
             else
-                this.structural_ = imcast( ...
-                    fullfile(this.fslPath, filename('bt1_default_restore')), ...
-                    'mlfourd.ImagingContext');
+                this.structural_ = mlfourd.ImagingContext( ...
+                    fullfile(this.fslPath, filename('bt1_default_restore')));
             end 
             
             %% For freesurfer

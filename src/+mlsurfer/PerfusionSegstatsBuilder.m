@@ -63,7 +63,7 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 fullfile(this.perfPath, filename(this.CBF_FILEPREFIX)));
         end
         function this = set.cbf(this, obj)
-            this.cbf_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.cbf_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.cbv(this)
             if (~isempty(this.cbv_))
@@ -72,7 +72,7 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 fullfile(this.perfPath, filename(this.CBV_FILEPREFIX)));
         end
         function this = set.cbv(this, obj)
-            this.cbv_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.cbv_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.mtt(this)
             if (~isempty(this.mtt_))
@@ -81,14 +81,14 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 fullfile(this.perfPath, filename(this.MTT_FILEPREFIX)));
         end
         function this = set.mtt(this, obj)
-            this.mtt_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.mtt_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.perfComposite(this)
             assert(~isempty(this.perfComposite_))
             ic = this.perfComposite_; 
         end
         function this = set.perfComposite(this, ic)
-            this.perfComposite_ = imcast(ic, 'mlfourd.ImagingContext');
+            this.perfComposite_ = mlfourd.ImagingContext(ic);
             for c = 1:length(this.perfComposite_.imcomponent)
                 assert(lexist(this.perfComposite_.imcomponent.get(c).fqfilename, 'file'));
             end
@@ -145,7 +145,7 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             img = this.referenceT2Image_;  
         end
         function this = set.referenceT2Image(this, imobj)
-            this.referenceT2Image_ = imcast(imobj, 'mlfourd.ImagingContext');
+            this.referenceT2Image_ = mlfourd.ImagingContext(imobj);
             assert(lexist(this.referenceT2Image_.fqfilename, 'file'));
         end
         function ic   = get.t0(this)
@@ -155,7 +155,7 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 fullfile(this.perfPath, filename(this.T0_FILEPREFIX)));
         end
         function this = set.t0(this, obj)
-            this.t0_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.t0_ = mlfourd.ImagingContext(obj);
         end
     end
     
@@ -193,11 +193,11 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             this.product = this.alignPerfusionParams;
             
             statfns       = CellArrayList;
-            prds          = imcast(this.product, 'mlfourd.ImagingComponent');
+            prds          = mlfourd.ImagingContext(this.product);
             this.perfMask = prds.get(prds.length);
             for p = 1:length(prds)
                 [~,lhstat,rhstat] = this.surferRegisteredSegstats( ...
-                                    imcast(prds{p}, 'mlfourd.ImagingContext'), ':colormap=nih:opacity=0.5', this.perfMask);
+                                    mlfourd.ImagingContext(prds{p}), ':colormap=nih:opacity=0.5', this.perfMask);
                 statfns.add(lhstat);
                 statfns.add(rhstat);
             end            
@@ -217,21 +217,21 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
         end 
         function this = makePerfMask(this)
             assert(lexist(this.perfMcf.fqfilename, 'file'));
-            ic             = imcast(this.perfLogProb, 'mlfourd.ImagingContext');            
+            ic             = mlfourd.ImagingContext(this.perfLogProb);            
             nii            = ic.nifti;
             nii.img        = nii.img > 0.05*nii.dipmax;
             nii.fileprefix = this.PERF_MASK_FILEPREFIX;
             nii.save;
-            this.perfMask_ = imcast(nii, 'mlfourd.ImagingContext');
+            this.perfMask_ = mlfourd.ImagingContext(nii);
         end
         function this = makePerfTemplate(this)
             assert(lexist(this.perfMcf.fqfilename, 'file'));
-            ic                 = imcast(this.perfMcf, 'mlfourd.ImagingContext');
+            ic                 = mlfourd.ImagingContext(this.perfMcf);
             nii                = ic.nifti;
             nii.img            = nii.img(:,:,:,1);
             nii.fileprefix     = this.PERF_TEMPLATE_FILEPREFIX;
             nii.save;
-            this.perfTemplate_ = imcast(nii, 'mlfourd.ImagingContext');
+            this.perfTemplate_ = mlfourd.ImagingContext(nii);
         end
     end 
 
@@ -265,7 +265,7 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 end
             end
             splitup = splitup.add(this.perfMask);
-            splitup = imcast(splitup, 'mlfourd.ImagingContext');
+            splitup = mlfourd.ImagingContext(splitup);
         end      
         function prod    = alignPerfusionParams(this)  
             import mlsurfer.*;

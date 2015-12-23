@@ -29,8 +29,6 @@ classdef SurferBuilder < mlsurfer.ISurferFilesystem
     end    
     
     methods %% Empty, to be subclassed by concrete builders
-        function this = buildUnpacked(this)
-        end   
         function this = buildCorticalThickness(this)
         end
         function this = bbregisterNative(this)
