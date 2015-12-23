@@ -12,9 +12,9 @@ classdef VascularTerritories
 
 	methods
         function roi  = territoryRoi(this, hemi, terr)
-            roi = imcast( ...
+            roi = mlfourd.ImagingContext( ...
                       this.surferRois_.segids2roi( ...
-                          this.territory2segids(hemi, terr)), 'mlfourd.ImagingContext');
+                          this.territory2segids(hemi, terr)));
         end
 		function this = VascularTerritories(bldr)
 			assert(isa(bldr, 'mlsurfer.SurferBuilder'));

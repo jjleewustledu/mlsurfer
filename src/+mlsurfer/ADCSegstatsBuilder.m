@@ -26,7 +26,7 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             ic = mlfourd.ImagingContext.load(fullfile(this.fslPath, filename(this.ADC_FILEPREFIX)));
         end
         function this = set.adc(this, obj)
-            this.adc_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.adc_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.dwi(this)
             if (~isempty(this.dwi_))
@@ -34,7 +34,7 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             ic = mlfourd.ImagingContext.load(fullfile(this.fslPath, filename(this.DWI_FILEPREFIX)));
         end
         function this = set.dwi(this, obj)
-            this.dwi_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.dwi_ = mlfourd.ImagingContext(obj);
         end
     end
     
@@ -83,9 +83,8 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 this = this.bbregisterNative; 
             end  
             statfns = CellArrayList;
-            this.product = imcast( ...
-                fullfile(this.fslPath, [this.adc.fileprefix '_on_' filename(this.t1.fileprefix)]), ...
-                'mlfourd.ImagingContext');
+            this.product = mlfourd.ImagingContext( ...
+                fullfile(this.fslPath, [this.adc.fileprefix '_on_' filename(this.t1.fileprefix)]));
             this.dat = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             [~,lhstat,rhstat] = this.surferRegisteredSegstats(this.product, ...
                                 ':colormap=heat:heatscale=0,2,6:heatscaleoptions=truncate:opacity=0.5');
@@ -98,9 +97,8 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 this = this.bbregisterNative; 
             end  
             statfns = CellArrayList;
-            this.product = imcast( ...
-                fullfile(this.fslPath, [this.dwi.fileprefix '_meanvol_on_' filename(this.t1.fileprefix)]), ...
-                'mlfourd.ImagingContext');
+            this.product = mlfourd.ImagingContext( ...
+                fullfile(this.fslPath, [this.dwi.fileprefix '_meanvol_on_' filename(this.t1.fileprefix)]));
             this.dat = SurferFilesystem.datFilename(this.fslPath, SurferFilesystem.T1_FILEPREFIX);
             [~,lhstat,rhstat] = this.surferRegisteredSegstats(this.product, ...
                                 ':colormap=heat:heatscale=0,2,6:heatscaleoptions=truncate:opacity=0.5');

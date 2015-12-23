@@ -32,7 +32,7 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
             pth = fullfile(getenv('SUBJECTS_DIR'), this.targetId, 'surf', '');
         end
         function this = set.bt1(this, obj)
-            this.bt1_ = imcast(obj, 'mlfourd.ImagingContext');
+            this.bt1_ = mlfourd.ImagingContext(obj);
         end
         function ic   = get.bt1(this)
             assert(~isempty(this.bt1_));
@@ -47,7 +47,7 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
             nii.img        = double(prod(nii.size))*double(nii.img)/double(nii.dipsum);
             nii.fileprefix = [ic.fileprefix '_norm'];
             nii.save;
-            ic = imcast(nii, 'mlfourd.ImagingContext');
+            ic = mlfourd.ImagingContext(nii);
         end
         function      buildThicknessForStudy(studyPth)
             assert(lexist(studyPth, 'dir'));
@@ -174,8 +174,8 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
 
  			this = this@mlsurfer.SurferBuilderPrototype(varargin{:}); 
             nr = mlfourd.NamingRegistry.instance;
-            this.bt1_          = imcast(fullfile(this.fslPath, nr.BT1_DEFAULT), 'mlfourd.ImagingContext');
-            this.segmentation_ =        fullfile(this.mriPath, 'aparc.a2009s+aseg.mgz');
+            this.bt1_          = mlfourd.ImagingContext(fullfile(this.fslPath, nr.BT1_DEFAULT));
+            this.segmentation_ = fullfile(this.mriPath, 'aparc.a2009s+aseg.mgz');
             
             p = inputParser;        
             p.KeepUnmatched = true;
