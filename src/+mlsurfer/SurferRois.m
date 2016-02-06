@@ -77,7 +77,7 @@ classdef SurferRois < mlrois.AbstractRois
                     'makeAparcWithExclusions');
                 this.aparcIndexedRois_ = ic.nifti;
             end
-            assert(isa(this.aparcIndexedRois_, 'mlfourd.NIfTIInterface'));
+            assert(isa(this.aparcIndexedRois_, 'mlfourd.INIfTI'));
             nii = this.aparcIndexedRois_;
         end
         function this  = set.aparcIndices(this, ai)

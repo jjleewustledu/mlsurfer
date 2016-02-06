@@ -22,7 +22,7 @@ classdef Test_SurferDirector < mlsurfer_xunit.Test_mlsurfer
             assertEqual(this.E_SEGSTATS, this.sd_.estimateSegstats);
         end        
  		function test_reconAll(this)
-            this.sd_.reconAll(this.sd_.alignmentBuilder);
+            this.sd_.reconAll(this.sd_.builder);
             this.assertPopulated(this.sd_.subjectPath);  
             this.assertPopulated(this.sd_.mriPath);       
             this.assertPopulated(this.sd_.surfPath);

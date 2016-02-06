@@ -11,7 +11,7 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
  	%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad) 
 
     properties (Dependent)
-        surferBuilder
+        builder
         product
         referenceImage
         dat
@@ -41,8 +41,8 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
             this = SurferDirector( ...
                        SurferBuilder( ...
                            SurferDicomConverter.createFromModalityPath(modalPth)));
-            this.surferBuilder.indices3DAnat = indices;
-            this.surferBuilder.unpack3DAnatMgz(dcmdir);
+            this.builder.indices3DAnat = indices;
+            this.builder.unpack3DAnatMgz(dcmdir);
         end      
         function        fixUnpacks(studyPth)
             import mlsystem.* mlsurfer.*;
@@ -70,30 +70,30 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
     end 
     
     methods %% SET/GET
-        function this = set.surferBuilder(this, bldr)
+        function this = set.builder(this, bldr)
             assert(isa(bldr, 'mlsurfer.SurferBuilder'));
-            this.surferBuilder_ = bldr;
+            this.builder_ = bldr;
         end
-        function bldr = get.surferBuilder(this)
-            bldr = this.surferBuilder_;
+        function bldr = get.builder(this)
+            bldr = this.builder_;
         end
         function this = set.product(this, img)
-            this.surferBuilder_.product = img;
+            this.builder_.product = img;
         end
         function img  = get.product(this)
-            img = this.surferBuilder_.product;
+            img = this.builder_.product;
         end
         function this = set.referenceImage(this, img)
-            this.surferBuilder_.referenceImage = img;
+            this.builder_.referenceImage = img;
         end
         function img  = get.referenceImage(this)
-            img = this.surferBuilder_.referenceImage;
+            img = this.builder_.referenceImage;
         end
         function this = set.dat(this, d)
-            this.surferBuilder_.dat = d;
+            this.builder_.dat = d;
         end
         function d    = get.dat(this)
-            d = this.surferBuilder_.dat;
+            d = this.builder_.dat;
         end
     end
     
@@ -104,13 +104,13 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
             %  http://surfer.nmr.mgh.harvard.edu/fswiki/FsFastUnpackData
             %  Usage:  SurferDirector.reconAll(fully_qualified_modality_path)           
             
-            this.surferBuilder = this.surferBuilder.reconAll(varargin{:});
+            this.builder = this.builder.reconAll(varargin{:});
         end 
         function [prd,this] = estimateRoi(this)
         end
         function [prd,this] = estimateSegstats(this)
-            this.surferBuilder = this.surferBuilder.estimateSegstats(varargin{:});
-            prd = this.surferBuilder.product;
+            this.builder = this.builder.estimateSegstats(varargin{:});
+            prd = this.builder.product;
         end
 
         function this = SurferDirector(varargin)
@@ -120,12 +120,12 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
             p = inputParser;
             addOptional(p, 'bldr', mlfsurfer.SurferBuilderPrototype, @(x) isa(x, 'mlsurfer.SurferBuilder'));
             parse(p, varargin{:});
-            this.surferBuilder_ = p.Results.bldr;
+            this.builder_ = p.Results.bldr;
         end
     end
     
     properties (Access = 'private')
-        alignmentBuilder_
+        builder_
     end   
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 

@@ -86,7 +86,7 @@ classdef ParcellationSegments
             addRequired( p, 'hemisphere',         @(x) strcmp('lh',x) || strcmp('rh',x));
             addParameter(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
             addParameter(p, 'Delta',       false, @islogical);
-            addParameter(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
+            addParameter(p, 'SessionPath', pwd,   @isdir);
             parse(p, param, hemis, varargin{:});
             this.parameter   = param;
             this.hemisphere  = hemis;

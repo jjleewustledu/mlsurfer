@@ -11,7 +11,7 @@ classdef SurferDirectorComponent
  	 
 
 	properties (Abstract)
-        surferBuilder
+        builder
         product
         referenceImage
         dat        

@@ -27,7 +27,7 @@ classdef Test_PerfusionSegstatsBuilder < MyTestCase
  		% N.B. (Static, Abstract, Access='', Hidden, Sealed) 
 
         function test_perfComposite(this)
-            imcps = this.pssb.perfComposite.imcomponent;
+            imcps = this.pssb.perfComposite.composite;
             for s = 1:length(imcps)
                 assert(lexist(imcps{s}.fqfilename, 'file'));
             end
@@ -37,7 +37,7 @@ classdef Test_PerfusionSegstatsBuilder < MyTestCase
             for f = 1:length(filenames)
                 try
                     strcmp( ...
-                        this.expectedFsanatomicalFilename(this.pssb.perfComposite.imcomponent.get(f).fileprefix), ...
+                        this.expectedFsanatomicalFilename(this.pssb.perfComposite.composite.get(f).fileprefix), ...
                         filenames.get(f));
                 catch ME
                     handwarning(ME);

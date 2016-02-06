@@ -36,7 +36,7 @@ classdef DatasetMap
             addRequired( p, 'param',              @ischar);
             addParameter(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
             addParameter(p, 'Delta',       false, @islogical);
-            addParameter(p, 'SessionPath', pwd,   @(x) lexist(x, 'dir'));
+            addParameter(p, 'SessionPath', pwd,   @isdir);
             parse(p, param, varargin{:});
             
             this.parc_ = Parcellations( ...
