@@ -10,7 +10,7 @@ classdef SurferFacade
  	
 
 	properties (SetAccess = protected)
- 		studyData
+ 		sessionData
  	end
 
 	methods 
@@ -20,33 +20,35 @@ classdef SurferFacade
  			%  Usage:  this = SurferFacade()
 
             ip = inputParser;
-            ip.addParameter(ip, 'studyData', [], @(x) isa(x, 'mlpipeline.StudyDataSingleton'));
+            addParameter(ip, 'sessionData', [], @(x) isa(x, 'mlpipeline.SessionData'));
             parse(ip, varargin{:});
+            
+            this.sessionData = ip.Results.sessionData;
         end
         
         function ic = aparcA2009sAseg(this)
             ic = mlfourd.ImagingContext( ...
-                fullfile(this.studyData.mriPath, 'aparc.a2009s+aseg.mgz'));
+                fullfile(this.sessionData.mriPath, 'aparc.a2009s+aseg.mgz'));
             ic.filesuffix = '.nii.gz';
         end
-        function ic = maskRegion(this, region)
+        function ic = maskRegion(~, hparc, region)
+            assert(isa(hparc, 'function_handle'));
             switch region
                 case 'amygdala'
-                    ic = this.maskAparcA2009sAseg('include', [18 54]);
-                    ic.append_fileprefix('_amygdala');
+                    ic = hparc('include', [18 54]);
+                    ic.fileprefix = [ic.fileprefix '_amygdala'];
                 case 'cerebellum'
-                    ic = this.maskAparcA2009sAseg('include', [7 8 46 47]);
-                    ic.append_fileprefix('_cerebellum');
+                    ic = hparc('include', [7 8 46 47]);
+                    ic.fileprefix = [ic.fileprefix '_cerebellum'];
                 case 'cerebrum'
-                    ic = this.maskAparcA2009sAseg( ...
-                         'exclude', [16 7 8 46 47 14 15 4 43 31 63 24]); % brainstem cerebellumx4 ventriclesx4 choroidplexus csf
-                    ic.append_fileprefix('_cerebrum');
+                    ic = hparc('exclude', [16 7 8 46 47 14 15 4 43 31 63 24]); % brainstem cerebellumx4 ventriclesx4 choroidplexus csf
+                    ic.fileprefix = [ic.fileprefix '_cerebrum'];
                 case 'hippocampus'
-                    ic = this.maskAparcA2009sAseg('include', [17 53]);
-                    ic.append_fileprefix('_hippocampus');
+                    ic = hparc('include', [17 53]);
+                    ic.fileprefix = [ic.fileprefix '_hippocampus'];
                 case 'thalamus'
-                    ic = this.maskAparcA2009sAseg('include', [10 49]);
-                    ic.append_fileprefix('_thalamus');
+                    ic = hparc('include', [10 49]);
+                    ic.fileprefix = [ic.fileprefix '_thalamus'];
                 otherwise
                     error('mlfsl:unsupportedSwitchCase', 'SurferFacade.maskRegion.region->%s', region);
             end  
@@ -61,17 +63,43 @@ classdef SurferFacade
                     for idx = 1:length(idxList)
                         niid.img(niid.img == idxList(idx)) = -1;
                     end
-                    ic = ImagingContext(MaskingNIfTId(niid, 'uthresh', 0, 'binarized'));
+                    ic = ImagingContext(MaskingNIfTId(niid, 'uthresh', 0, 'binarized', true));
                 case 'exclude'
                     ic = this.aparcA2009sAseg;
                     niid = ic.niftid;
                     for idx = 1:length(idxList)
                         niid.img(niid.img == idxList(idx)) = 0;
                     end
-                    ic = ImagingContext(MaskingNIfTId(niid, 'binarized'));
+                    ic = ImagingContext(MaskingNIfTId(niid, 'binarized', true));
                 otherwise
                     error('mlfsl:unsupportedSwitchCase', 'SurferFacade.maskAparcA2009sAseg.selection->%s', selection);
             end
+        end
+        function ic = maskWmparc(this, selection, idxList)
+            import mlfourd.*;
+            switch selection
+                case 'include'
+                    ic = this.wmparc;
+                    niid = ic.niftid;
+                    for idx = 1:length(idxList)
+                        niid.img(niid.img == idxList(idx)) = -1;
+                    end
+                    ic = ImagingContext(MaskingNIfTId(niid, 'uthresh', 0, 'binarized', true));
+                case 'exclude'
+                    ic = this.wmparc;
+                    niid = ic.niftid;
+                    for idx = 1:length(idxList)
+                        niid.img(niid.img == idxList(idx)) = 0;
+                    end
+                    ic = ImagingContext(MaskingNIfTId(niid, 'binarized', true));
+                otherwise
+                    error('mlfsl:unsupportedSwitchCase', 'SurferFacade.maskAparcA2009sAseg.selection->%s', selection);
+            end
+        end
+        function ic = wmparc(this)            
+            ic = mlfourd.ImagingContext( ...
+                fullfile(this.sessionData.mriPath, 'wmparc.mgz'));
+            ic.filesuffix = '.nii.gz';
         end
  	end 
 
