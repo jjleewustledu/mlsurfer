@@ -1,6 +1,6 @@
 classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
 	%% PERFUSIONSEGSTATSBUILDER 
-    %  TO DO:  collected hard-coded filenames
+    %  TODO:  collected hard-coded filenames
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -89,8 +89,8 @@ classdef PerfusionSegstatsBuilder < mlsurfer.SurferBuilderPrototype
         end
         function this = set.perfComposite(this, ic)
             this.perfComposite_ = mlfourd.ImagingContext(ic);
-            for c = 1:length(this.perfComposite_.imcomponent)
-                assert(lexist(this.perfComposite_.imcomponent.get(c).fqfilename, 'file'));
+            for c = 1:length(this.perfComposite_.composite)
+                assert(lexist(this.perfComposite_.composite.get(c).fqfilename, 'file'));
             end
         end
         function ic   = get.perfLogProb(this)

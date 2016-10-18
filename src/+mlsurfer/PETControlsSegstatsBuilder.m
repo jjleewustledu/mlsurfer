@@ -119,7 +119,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             %                                                         'doAlignment', logical ^
             
             p = inputParser;
-            addOptional(p, 'studyPath',   pwd,   @(x) lexist(x, 'dir'));
+            addOptional(p, 'studyPath',   pwd,   @isdir);
             addOptional(p, 'doAlignment', false, @islogical);
             parse(p, varargin{:});
             
@@ -189,7 +189,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 'product',        ImagingContext.load(fullfile(this.fslPath, filename(oeffp))), ...
                 'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(this.t1Prefix))), ...
                 'xfm',                                fullfile(this.fslPath, [this.hoFileprefix '_on_' this.t1Prefix '.mat']));
-            petAlignBldr = petAlignBldr.applyXfm;
+            petAlignBldr = petAlignBldr.buildTransformed;
             prd          = mlfourd.ImagingContext(this.product);
             this.product = prd.add(petAlignBldr.product); 
         end

@@ -206,7 +206,7 @@ classdef PETSegstatsBuilder < mlsurfer.SurferBuilderPrototype
                 'product',        ImagingContext.load(fullfile(this.fslPath, filename(oeffp))), ...
                 'referenceImage', ImagingContext.load(fullfile(this.fslPath, filename(SurferFilesystem.T1_FILEPREFIX))), ...
                 'xfm',                                fullfile(this.fslPath, [this.HO_MEANVOL_FILEPREFIX '_on_' SurferFilesystem.T1_FILEPREFIX '.mat']));
-            petAlignBldr = petAlignBldr.applyXfm;
+            petAlignBldr = petAlignBldr.buildTransformed;
             prd          = mlfourd.ImagingContext(this.product);
             this.product = prd.add(petAlignBldr.product); 
         end

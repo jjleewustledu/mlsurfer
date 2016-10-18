@@ -128,7 +128,7 @@ classdef ADCSegstatsBuilder < mlsurfer.SurferBuilderPrototype
     methods (Access = 'private')
         function prd = extractADC(~,prd)
             assert(isa(prd, 'mlfourd.ImagingContext'));
-            imcmp = prd.imcomponent;
+            imcmp = prd.composite;
             prd   = imcmp.get(2);
             prd   = mlfourd.ImagingContext.load(prd);
         end

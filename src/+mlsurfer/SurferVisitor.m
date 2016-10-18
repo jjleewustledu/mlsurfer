@@ -34,12 +34,6 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             this = mlsurfer.SurferVisitor('product', bldr.product, 'sessionPath', bldr.sessionPath);
             setenv('SUBJECTS_DIR', this.studyPath);
         end 
-        function         cmd()
-        end
-        function         help()
-        end
-        function         view()
-        end
     end 
     
 	methods %% GET/SET
@@ -140,7 +134,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
         
         %% SUPPORTED METHODS
         
-        function bldr =   visitAparcstats2table(this, bldr, varargin)  
+        function bldr =   visitAparcstats2table(this, bldr, varargin)
             %% VISITAPARCSTATS2TABLE calls Freesurfer command aparcstats2table
             %  meas:  area, volume, thickness, thicknessstd, meancurv, gauscurv, foldind, curvind
             
@@ -400,7 +394,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             opts.tval       = sprintf('%s/%s.thickness.%s.mgh', bldr.surfPath, hemi, bldr.targetId);
             this.mri_surf2surf(opts);
         end  
-        function bldr =   visitVol2fsanatomical(this, bldr)            
+        function bldr =   visitVol2fsanatomical(this, bldr)
             assert(isa(bldr, 'mlsurfer.SurferBuilder')); 
             cd(bldr.fslPath);
             
@@ -650,7 +644,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
                 oef.saveas(fqfn);
             end
         end
-        function fqfn =   tauHoFqfn(this, bldr)
+        function fqfn = tauHoFqfn(this, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ['tauHo_on_' SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
             if (~lexist(fqfn, 'file'))
@@ -660,7 +654,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
                 tau.saveas(fqfn);
             end
         end
-        function fqfn =   tauOoFqfn(this, bldr)
+        function fqfn = tauOoFqfn(this, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ['tauOo_on_' SurferFilesystem.T1_FILEPREFIX PETSegstatsBuilder.NORM_BY_DOSE_SUFFIX '.nii.gz']);
             if (~lexist(fqfn, 'file'))
@@ -670,15 +664,15 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
                 tau.saveas(fqfn);
             end
         end
-        function fqfn =   adcFqfn(~, bldr)
+        function fqfn = adcFqfn(~, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ['adc_default_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
         end
-        function fqfn =   dwiFqfn(~, bldr)
+        function fqfn = dwiFqfn(~, bldr)
             import mlsurfer.*;
             fqfn = fullfile(bldr.fslPath, ['dwi_default_meanvol_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
         end
-        function fqfn =   perfusionFqfn(~, bldr, param)
+        function fqfn = perfusionFqfn(~, bldr, param)
             import mlsurfer.*;
             fqfn = fullfile(bldr.perfPath, [param '_on_' SurferFilesystem.T1_FILEPREFIX '.nii.gz']);
         end      

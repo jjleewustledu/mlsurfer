@@ -1,4 +1,4 @@
-classdef MGH <  mlfourd.NIfTIdecorator6
+classdef MGH <  mlfourd.NIfTIdecoratorProperties
 	%% MGH is a NIfTIdecorator that composes an internal INIfTI object according to the decorator design pattern.
     %  It is presently a stub for future development of freesurfer tools.
 
@@ -50,14 +50,25 @@ classdef MGH <  mlfourd.NIfTIdecorator6
         function obj  = clone(this)
             obj = mlsurfer.MGH(this.component_.clone);
         end
+        function        save(this)
+            this.component_.save;
+            mlsurfer.MGH.mri_convert([this.fqfp this.FILETYPE_EXT], [this.fqfp this.MGH_EXT]);
+        end
+        function obj  = saveas(this, fqfn)
+            obj = this.clone;
+            [p,fp] = filepartsx(fqfn, '.nii.gz');
+            fqfp = fullfile(p, fp);
+            obj.component_ = this.component_.saveas([fqfp this.FILETYPE_EXT]);
+            mlsurfer.MGH.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
+        end
         
         function this = MGH(cmp, varargin) %#ok<VANUS>
             %% MGH 
             %  Usage:  this = MGH(NIfTIdecorator_object[, option-name, option-value, ...])
             
             import mlfourd.*; 
-            this = this@mlfourd.NIfTIdecorator6(cmp);
-            this = this.append_descrip('decorated by MGH');            
+            this = this@mlfourd.NIfTIdecoratorProperties(cmp);
+            this = this.append_descrip('decorated by MGH');
         end
     end
 

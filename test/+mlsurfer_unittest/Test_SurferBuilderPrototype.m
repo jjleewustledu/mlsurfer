@@ -24,7 +24,7 @@ classdef Test_SurferBuilderPrototype < matlab.unittest.TestCase
     
     methods % GET
         function x = get.sessionPth(this)
-            x = fullfile(getenv('NP755'), this.sessionFold);
+            x = fullfile(getenv('MLUNIT_TEST_PATH'), 'cvl', 'np755', this.sessionFold);
         end
     end
 

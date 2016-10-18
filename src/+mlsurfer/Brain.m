@@ -49,7 +49,7 @@ classdef Brain
             
             import mlsurfer.*;
             ip = inputParser;
-            addRequired(ip, 'pth',   @(x) lexist(x, 'dir'));
+            addRequired(ip, 'pth',   @isdir);
             addRequired(ip, 'param', @(x) lstrfind(x, Parcellations.PARAMS_ALL));
             addParameter(ip, 'Territory', 'all_aca_mca', @(x) lstrfind(x, Parcellations.TERRITORIES));
             parse(ip, varargin{:});

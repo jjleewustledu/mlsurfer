@@ -51,7 +51,7 @@ classdef Parcellations
             import mlsurfer.*;
             ip = inputParser;
             addOptional( ip, 'surferFs',    [],  @(x) isa(x, 'mlsurfer.ISurferFilesystem'));
-            addParameter(ip, 'SessionPath', pwd, @(x) lexist(x, 'dir'));
+            addParameter(ip, 'SessionPath', pwd, @isdir);
             parse(ip, varargin{:});
                   
             if (~isempty(ip.Results.surferFs))

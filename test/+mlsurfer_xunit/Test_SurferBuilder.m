@@ -12,7 +12,7 @@ classdef Test_SurferBuilder < mlsurfer_xunit.Test_mlsurfer
 
 	properties 
  		expectedPath = '/usr/bin:/bin:/usr/sbin:/sbin';
-        surferBuilder
+        builder
  	end 
 
 	methods 
@@ -24,7 +24,7 @@ classdef Test_SurferBuilder < mlsurfer_xunit.Test_mlsurfer
  			import mlsurfer.*; 
             ifile = this.t1_fqfn;
             ofile = fullfile(this.fslPath, 'test_surferBash.mgz');
-            this.surferBuilder.surferBash( ...
+            this.builder.surferBash( ...
                  sprintf('mri_convert -it %s -ot %s %s %s', 'nii', 'mgz', ifile, ofile));
             assertTrue(lexist(ofile, 'file'));
         end 
@@ -34,8 +34,8 @@ classdef Test_SurferBuilder < mlsurfer_xunit.Test_mlsurfer
         
  		function this = Test_SurferBuilder(varargin) 
  			this = this@mlsurfer_xunit.Test_mlsurfer(varargin{:}); 
-            this.surferBuilder = mlsurfer.SurferBuilder.createFromMrPath(this.mrPath);
-            this.surferBuilder.sessionPath = this.subjectPath;
+            this.builder = mlsurfer.SurferBuilder.createFromMrPath(this.mrPath);
+            this.builder.sessionPath = this.subjectPath;
  		end % Test_SurferBuilder (ctor) 
  	end 
 

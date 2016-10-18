@@ -11,18 +11,18 @@ classdef SurferDirectorDecorator < mlsurfer.SurferDirectorComponent
  	 
 
 	properties (Dependent)
-        surferBuilder
+        builder
         product
         referenceImage
         dat
     end 
 
     methods %% SET/GET
-        function this = set.surferBuilder(this, bldr)
-            this.component_.surferBuilder = bldr;
+        function this = set.builder(this, bldr)
+            this.component_.builder = bldr;
         end
-        function bldr = get.surferBuilder(this)
-            bldr = this.component_.surferBuilder;
+        function bldr = get.builder(this)
+            bldr = this.component_.builder;
         end
         function this = set.product(this, bldr)
             this.component_.product = bldr;
