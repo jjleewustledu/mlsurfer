@@ -1,4 +1,4 @@
-classdef MGH <  mlfourd.NIfTIdecoratorProperties
+classdef MGH < mlfourd.NIfTIdecoratorProperties
 	%% MGH is a NIfTIdecorator that composes an internal INIfTI object according to the decorator design pattern.
     %  It is presently a stub for future development of freesurfer tools.
 
@@ -47,19 +47,28 @@ classdef MGH <  mlfourd.NIfTIdecoratorProperties
     end    
     
     methods
-        function obj  = clone(this)
-            obj = mlsurfer.MGH(this.component_.clone);
+        function obj = clone(this)
+            obj = mlsurfer.MGH(this.component.clone);
         end
-        function        save(this)
-            this.component_.save;
+        function       save(this)
+            this.component.save;
             mlsurfer.MGH.mri_convert([this.fqfp this.FILETYPE_EXT], [this.fqfp this.MGH_EXT]);
+            deleteExisting([this.fqfp '.nii']);
+            deleteExisting([this.fqfp '.nii.gz']);
         end
-        function obj  = saveas(this, fqfn)
+        function obj = saveas(this, fqfn)
             obj = this.clone;
-            [p,fp] = filepartsx(fqfn, '.nii.gz');
-            fqfp = fullfile(p, fp);
-            obj.component_ = this.component_.saveas([fqfp this.FILETYPE_EXT]);
-            mlsurfer.MGH.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
+            [pth,fp,x] = myfileparts(fqfn);
+            if (isempty(x))
+                fqfp = fullfile(pth, fp);
+                obj.component = this.component.saveas([fqfp this.FILETYPE_EXT]);
+                mlsurfer.MGH.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
+                obj.filesuffix = this.MGH_EXT;
+                deleteExisting([fqfp '.nii']);
+                deleteExisting([fqfp '.nii.gz']);
+                return
+            end
+            obj.component = this.component.saveas(fqfn);
         end
         
         function this = MGH(cmp, varargin) %#ok<VANUS>
@@ -67,14 +76,18 @@ classdef MGH <  mlfourd.NIfTIdecoratorProperties
             %  Usage:  this = MGH(NIfTIdecorator_object[, option-name, option-value, ...])
             
             import mlfourd.*; 
-            this = this@mlfourd.NIfTIdecoratorProperties(cmp);
-            this = this.append_descrip('decorated by MGH');
+            this = this@mlfourd.NIfTIdecoratorProperties(cmp, varargin{:});
+            if (nargin == 1 && isa(cmp, 'mlsurfer.MGH'))
+                this = this.component;
+                return
+            end
+            this = this.append_descrip('decorated by mlsurfer.MGH');
         end
     end
 
     %% PRIVATE
     
-    methods (Static, Access = 'private')        
+    methods (Static, Access = 'private')
         function f2 = mri_convert(f1, f2)
             assert(lexist(f1, 'file'), sprintf('MGH.mri_convert:  file not found:  %s', f1));
             if (~exist('f2', 'var'))
