@@ -1,4 +1,4 @@
-classdef SurferRois < mlrois.AbstractRois
+classdef SurferRois < mlsurfer.AbstractRois
 	%% SURFERROIS generates freesurfer data based on user-defined ROIs
     %  May require subsequent implementation of http://surfer.nmr.mgh.harvard.edu/fswiki/VolumeRoiCorticalThickness
     
@@ -114,9 +114,8 @@ classdef SurferRois < mlrois.AbstractRois
             fp = [a '_' b(2:end)];
         end
         function ic    = get.extraParenchymalRoi(this) %#ok<MANU>
-            import mlrois.*;
-            csf   = CsfRois;
-            brain = ParenchymaRois; 
+            csf   = mlfsl.CsfRois;
+            brain = mlrois.ParenchymaRois; 
             nii   = ~brain.mask | csf.mask;
             nii.fileprefix = 'extraParenchymal';
             nii.save;
@@ -249,7 +248,7 @@ classdef SurferRois < mlrois.AbstractRois
             %  Usage:  [parameter_image, obj] = obj.parcellateMap(mapping)
             %           ^ structural image                        ^ containers.Map:   aparcIndices -> parameter values
             %             used for aparcIndexedRois
-            %  See also:  AbstractRois.structural, aparcIndexedRoiChoice
+            %  See also:  mlsurfer.AbstractRois.structural, aparcIndexedRoiChoice
             
             p = inputParser;
             addRequired(  p, 'paramMap',                @(x) isa(x, 'containers.Map') & ~isempty(x));
@@ -423,8 +422,8 @@ classdef SurferRois < mlrois.AbstractRois
             
             import mlrois.*;
             aparc = this.aparcIndexedRois;
-            cereb = CerebellumRois; cereb = cereb.mask;
-            pca   = PcaRois;          pca = pca.mask;
+            cereb = mlsurfer.CerebellumRois; cereb = cereb.mask;
+            pca   = mlsurfer.PcaRois;          pca = pca.mask;
             aparc = aparc .* ~cereb .* ~pca;
             if (this.EXCLUDE_EXTRAPARENCHYMAL)
                 aparc = aparc .* ~this.extraParenchymalRoi.nifti; end
@@ -489,9 +488,9 @@ classdef SurferRois < mlrois.AbstractRois
  		function this                  = SurferRois(varargin) 
  			%% SURFERROIS 
  			%  Usage:  obj = SurferRois([...]) 
-            %                            ^ cf. mlrois.AbstractRois
+            %                            ^ cf. mlsurfer.AbstractRois
             
-            this = this@mlrois.AbstractRois(varargin{:});
+            this = this@mlsurfer.AbstractRois(varargin{:});
             this.rememberSeparatedRois_ = true;
             this.saveSeparatedRois_     = true;
  		end %  ctor 

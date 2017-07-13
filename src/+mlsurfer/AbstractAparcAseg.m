@@ -1,4 +1,4 @@
-classdef AbstractAparcAseg 
+classdef AbstractAparcAseg < mlrois.IRois
 	%% ABSTRACTAPARCASEG defers all public properties to subclasses for naming parcellations & segmentations.
 
 	%  $Revision$
@@ -6,6 +6,7 @@ classdef AbstractAparcAseg
  	%  last modified $LastChangedDate$ and placed into repository /Users/jjlee/Local/src/mlcvl/mlsurfer/src/+mlsurfer.
  	%% It was developed on Matlab 9.1.0.441655 (R2016b) for MACI64.  Copyright 2017 John Joowon Lee.
  	
+    
 	methods 
 		  
  		function this = AbstractAparcAseg(varargin)
