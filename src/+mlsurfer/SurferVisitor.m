@@ -19,8 +19,8 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
         echoResult
         freesurferHome
         indices3DAnat
-        mrFolder % DEPRECATED
-        mrPath   % DEPRECATED
+        mrFolder % @deprecated
+        mrPath   % @deprecated
         target3DAnat
     end 
 
@@ -91,7 +91,8 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
 
     methods
         
-        %% FOR TESTING; DEPRECATED   
+        %% FOR TESTING
+        %  @deprecated
         
         function          confirmRoiOnAnatomy(this, bldr)
             if (lgetenv('MLUNIT_TESTING'))

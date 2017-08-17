@@ -13,7 +13,7 @@ classdef SurferFilesystem < mlsurfer.ISurferFilesystem
  	%  $Id$ 
     
     properties (Constant)        
-        T1_FILEPREFIX  = 't1_default' % DEPRECATED
+        T1_FILEPREFIX  = 't1_default' % @deprecated
         T2_FILEPREFIX  = 't2_default'
     end
     

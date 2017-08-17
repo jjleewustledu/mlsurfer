@@ -14,9 +14,9 @@ classdef BrainmaskBuilder < mlrois.RoisBuilder
 		  
  		function this = BrainmaskBuilder(varargin)
  			%% BRAINMASK
-            %  @params named 'logger' is an mlpipeline.AbstractLogger.
-            %  @params named 'product' is the initial state of the product to build.
- 			%  @params named 'sessionData' is an 'mlpipeline.ISessionData'.
+            %  @param named 'logger' is an mlpipeline.AbstractLogger.
+            %  @param named 'product' is the initial state of the product to build.
+ 			%  @param named 'sessionData' is an 'mlpipeline.ISessionData'.
 
  			this = this@mlrois.RoisBuilder(varargin{:});
             this.product_ = mlfourd.ImagingContext(this.sessionData.brainmask);
