@@ -29,15 +29,6 @@ classdef SurferRegistry < mlpatterns.Singleton
         testSubjectPath
     end
     
-    methods %% GET
-        function x = get.subjectsDir(~)
-            x = getenv('SUBJECTS_DIR');
-        end
-        function x = get.testSubjectPath(~)
-            x = fullfile(getenv('MLUNIT_TEST_PATH'), 'np755', 'mm01-020_p7377_2009feb5', '');
-        end
-    end
-    
     methods (Static) 
         function this = instance(qualifier)
             %% INSTANCE uses string qualifiers to implement registry behavior that
@@ -57,7 +48,35 @@ classdef SurferRegistry < mlpatterns.Singleton
                 this = uniqueInstance;
             end
         end
-    end     
+        function        setEnvironment6
+            [~,hn] = mlbash('hostname');
+            switch hn
+                case {'login01.cluster' 'login02.cluster'}
+                    mlbash('module load freesurfer-6.0.0');
+                    assertEqual('FREESURFER_HOME', '/export/freesurfer-6.0');
+                case {'william' 'pascal' 'linux1' 'linux5' 'maulinux1'}
+                    mlbash('export FREESURFER_HOME=/home/usr/jjlee/Local/freesurfer_2017oct20; source $FREESURFER_HOME/SetUpFreeSurfer.sh');
+                    [~,v] = mlbash('recon-all --version');
+                    assertNotEmpty(regexp(v, 'stable-pub-v6.0.0'));
+                otherwise
+                    error('mlsurfer:unsupportedSwitchcase', 'Surfer6Factor.setEnvironment');
+            end
+        end
+    end  
+    
+    methods 
+        
+        %% GET
+        
+        function x = get.subjectsDir(~)
+            x = getenv('SUBJECTS_DIR');
+        end
+        function x = get.testSubjectPath(~)
+            x = fullfile(getenv('MLUNIT_TEST_PATH'), 'np755', 'mm01-020_p7377_2009feb5', '');
+        end
+    end   
+    
+    %% PRIVATE
     
 	methods (Access = 'private')		  
  		function this = SurferRegistry(varargin)

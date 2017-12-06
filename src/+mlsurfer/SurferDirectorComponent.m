@@ -1,5 +1,6 @@
 classdef SurferDirectorComponent  
-	%% SURFERDIRECTORCOMPONENT   
+	%% SURFERDIRECTORCOMPONENT defines the interface for objects that can have responsibilities
+    %  added to them dynamically.  It participates in a decorator design pattern.
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -14,7 +15,7 @@ classdef SurferDirectorComponent
         builder
         product
         referenceImage
-        dat        
+        dat
  	end 
 
 	methods (Abstract)

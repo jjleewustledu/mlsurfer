@@ -1,12 +1,10 @@
 classdef SurferBuilder < mlsurfer.ISurferFilesystem
-	%% SURFERBUILDER is the salient interface for freesurfer workflows.
-    %  SurferBuilder is an abstract builder.  It is the parent to concrete builders that have freesurfer functionality.
-    %  It is called by director classes such as SurferDirector.  Clients should primarily access director classes
-    %  for construction of freesurfer-related product objects.  SurferBuilder is also an abstract prototype which is 
-    %  parent to concrete prototypes such as SurferBuilderPrototype.  All prototypes may be cloned, facilitating
-    %  adding/removing products or specifying new objects with varying structures dynamically configuring classes
-    %  at run-time.  
-    %  See also:  SurferDirector, SurferBuilderPrototype, mlpatterns.Builder, GoF
+	%% SURFERBUILDER specifies an abstract interface foir creating parts of a product object.
+    %  SurferBuilder is the principle abstraction for a builder design pattern; it is the parent to 
+    %  concrete builders implementing freesurfer functionality.  Clients should primarily access 
+    %  SurferDirector objects after binding SurferBuilder objects; the SurferDirector objects
+    %  guide construction of products with optimal use of construction algorithms.
+    %  See also:  SurferDirector, mlpatterns.Builder,  GoF
     
     %  Version $Revision: 2538 $ was created $Date: 2013-08-18 18:06:43 -0500 (Sun, 18 Aug 2013) $ by $Author: jjlee $,  
  	%  last modified $LastChangedDate: 2013-08-18 18:06:43 -0500 (Sun, 18 Aug 2013) $ and checked into svn repository
@@ -28,12 +26,17 @@ classdef SurferBuilder < mlsurfer.ISurferFilesystem
         obj = clone(this)
     end    
     
-    methods %% Empty, to be subclassed by concrete builders
+    methods 
+        
+        %% Empty, to be subclassed by concrete builders
+        
         function this = buildCorticalThickness(this)
         end
         function this = bbregisterNative(this)
         end
         function this = ensureBetted(this)
+        end
+        function this = reconAll(this)
         end
         function this = surferRegisteredSegstats(this)
         end
@@ -45,7 +48,7 @@ classdef SurferBuilder < mlsurfer.ISurferFilesystem
     %% PROTECTED
     
     methods (Access = 'protected')
-        function this = SurferBuilder()
+        function this = SurferBuilder()            
         end
     end
     

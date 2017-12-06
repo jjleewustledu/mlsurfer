@@ -1,4 +1,4 @@
-classdef SurferVisitor < mlpipeline.PipelineVisitor
+classdef SurferVisitor < mlpipeline.PipelineVisitor0
 	%% SURFERVISITOR   
     %  Cf.  http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial
 
@@ -454,7 +454,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
             %                       ^
             
             assert(isa(bldr, 'mlsurfer.SurferBuilder'));
-            if (exist('ids','var')); 
+            if (exist('ids','var')) 
                 this.indices3DAnat = ids; 
             end
             inputs = '';
@@ -496,9 +496,9 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor
 
  		function this   = SurferVisitor(varargin)
  			%% SURFERVISITOR
-            %  See also:   mlpipeline.PipelineVisitor
+            %  See also:   mlpipeline.PipelineVisitor0
             
-            this = this@mlpipeline.PipelineVisitor(varargin{:});
+            this = this@mlpipeline.PipelineVisitor0(varargin{:});
             this.workPath = fullfile(trimpath(this.sessionPath), this.WORK_FOLDER, '');
             assert(lexist(this.workPath));
  		end 

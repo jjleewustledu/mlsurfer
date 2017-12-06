@@ -1,8 +1,5 @@
 classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
-	%% SURFERBUILDERPROTOTYPE is a concrete prototype of SurferBuilder.  It may be cloned for dynamic creation of
-    %  configurable, structurally varying classes at run-time.  It uses SurferFilesystem by composition for
-    %  stereotypical filesystem operations needed by the mlsurfer package.  
-    %  See also:  SurferFilesystem, GoF.
+	%% SURFERBUILDERPROTOTYPE
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -45,7 +42,44 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
         targetId
     end 
     
-    methods %% SET/GET
+    methods (Static)
+        function checkHemi(hemi)
+            assert(ischar(hemi));
+            assert(strcmp('lh', hemi) || strcmp('rh', hemi));
+        end
+        function freeviewAll(sessPth)
+            import mlsurfer.*;
+            this = SurferBuilderPrototype('SessionPath', sessPth);
+            this.product = mlfourd.ImagingContext( ...
+                fullfile(this.sessionPath, 'fsl', filename(SurferFilesystem.T1_FILEPREFIX)));
+            cd(this.sessionPath);
+            vtor = SurferVisitor.createFromBuilder(this);
+            vtor.visitFreeviewAll(this);
+        end
+        function sessions = ensureBettedForStudy(studyPth)
+            if (~exist('studyPth', 'var'))
+                studyPth = pwd; end
+            cd(studyPth);
+            dt = mlsystem.DirTools('mm0*');
+            sessions = {};
+            for d = 1:length(dt.fqdns)
+                try
+                    cd(dt.fqdns{d});
+                    fprintf('SurferBuilderPrototype.ensureBettedForStudy is working in %s\n', dt.fqdns{d});
+                    sbp = mlsurfer.SurferBuilderPrototype('SessionPath', dt.fqdns{d});
+                    sbp.ensureBetted;
+                    sessions = [sessions dt.fqdns{d}]; %#ok<AGROW>
+                catch ME
+                    fprintf('%s\n', ME.message);
+                end
+            end            
+        end
+    end
+    
+    methods 
+        
+        %% SET/GET
+        
         function pth  = get.fslPath(this)
             pth = this.surferFs_.fslPath;
         end
@@ -196,46 +230,9 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             assert(~isempty(this.targetId_));
             [~,id] = fileparts(trimpath(this.targetId_));
         end
-    end
-    
-    methods (Static)
-        function checkHemi(hemi)
-            assert(ischar(hemi));
-            assert(strcmp('lh', hemi) || strcmp('rh', hemi));
-        end
-        function freeviewAll(sessPth)
-            import mlsurfer.*;
-            this = SurferBuilderPrototype('SessionPath', sessPth);
-            this.product = mlfourd.ImagingContext( ...
-                fullfile(this.sessionPath, 'fsl', filename(SurferFilesystem.T1_FILEPREFIX)));
-            cd(this.sessionPath);
-            vtor = SurferVisitor.createFromBuilder(this);
-            vtor.visitFreeviewAll(this);
-        end
-        function sessions = ensureBettedForStudy(studyPth)
-            if (~exist('studyPth', 'var'))
-                studyPth = pwd; end
-            cd(studyPth);
-            dt = mlsystem.DirTools('mm0*');
-            sessions = {};
-            for d = 1:length(dt.fqdns)
-                try
-                    cd(dt.fqdns{d});
-                    fprintf('SurferBuilderPrototype.ensureBettedForStudy is working in %s\n', dt.fqdns{d});
-                    sbp = mlsurfer.SurferBuilderPrototype('SessionPath', dt.fqdns{d});
-                    sbp.ensureBetted;
-                    sessions = [sessions dt.fqdns{d}]; %#ok<AGROW>
-                catch ME
-                    fprintf('%s\n', ME.message);
-                end
-            end            
-        end
-    end
-
-	methods  		 
-        function obj    = clone(this)
-            obj = mlsurfer.SurferBuilderPrototype(this);
-        end
+        
+        %%
+        
         function this   = bbregisterNative(this)
             thisClone         = this.clone;
             thisClone.product = this.referenceImage;
@@ -243,7 +240,20 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             vtor      = mlsurfer.SurferVisitor.createFromBuilder(this);
             thisClone = vtor.visitBBRegisterNative(thisClone);
             this.dat  = thisClone.dat;
-        end   	        
+        end   	  
+        function obj    = clone(this)
+            obj = mlsurfer.SurferBuilderPrototype(this);
+        end
+        function ic     = defaultMask(this)
+            %ic = mlfourd.ImagingContext(fullfile(this.fslPath, filename('bt1_default_mask')))
+            ic = mlfourd.ImagingContext(fullfile(this.mriPath, 'brainmask.mgz'));
+            ic = ic.binarized;
+            
+        end
+        function ic     = defaultT1(this)
+            %ic = mlfourd.ImagingContext(fullfile(this.fslPath, filename('bt1_default_restore')));
+            ic = mlfourd.ImagingContext(fullfile(this.mriPath, 'T1.mgz'));
+        end      
         function this   = ensureBetted(this)
             import mlsurfer.*;
             this.product = mlfourd.ImagingContext.load( ...
@@ -255,14 +265,14 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
         function tf     = isaSessionPath(this, pth)
             tf = this.surferFs_.isaSessionPath(pth);
         end
-        function [mm,p] = sessionPathParts(this, pth)
-            [mm,p] = this.surferFs_.sessionPathParts(pth);
-        end
         function fqfn   = pialNative_fqfn(this, hemi)
             fqfn = this.surferFs_.pialNative_fqfn(hemi);
         end
         function fqfn   = segstats_fqfn(this, varargin)
             fqfn = this.surferFs_.segstats_fqfn(varargin{:});
+        end
+        function [mm,p] = sessionPathParts(this, pth)
+            [mm,p] = this.surferFs_.sessionPathParts(pth);
         end
         function [this,lhstat,rhstat] = surferRegisteredSegstats(this, varargin)
             p = inputParser;
@@ -299,6 +309,7 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
                 this.roi_              = varargin{:}.roi_;
                 this.segmentation_     = varargin{:}.segmentation_;
                 this.segstats_         = varargin{:}.segstats_;
+                this.sessionData_      = varargin{:}.sessionData_;
                 this.structural_       = varargin{:}.structural_;
                 this.targetId_         = varargin{:}.targetId_;
                 this.surferFs_         = varargin{:}.surferFs_;
@@ -307,52 +318,53 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             
             %% Input parsing
             import mlfsl.* mlsurfer.*;
-            p = inputParser;
-            p.KeepUnmatched = true;
-            addParameter(p, 'dat',            '', @ischar);
-            addParameter(p, 'fsaverage',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'mask',           [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'roi',            [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'segmentation',   [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'segstats',       [], @ischar);
-            addParameter(p, 'sessionPath',    [], @ischar);
-            addParameter(p, 'structural',     [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParameter(p, 'targetId', ...
+            ip = inputParser;
+            ip.KeepUnmatched = true;
+            addParameter(ip, 'dat',            '', @ischar);
+            addParameter(ip, 'fsaverage',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'mask',           [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'roi',            [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'segmentation',   [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'segstats',       [], @ischar);
+            addParameter(ip, 'sessionData',    [], @(x) isa(x, 'mlpipeline.SessionData'));
+            addParameter(ip, 'sessionPath',    [], @ischar);
+            addParameter(ip, 'structural',     [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(ip, 'targetId', ...
                             'fsaverage',          @ischar);
-            parse(p, varargin{:});
-            this.dat_                = p.Results.dat;
-            this.targetId_           = p.Results.fsaverage;
-            this.product_            = p.Results.image;
-            if (~isempty(p.Results.product))
-                this.product_        = p.Results.product; end
-            this.referenceImage_     = p.Results.reference;
-            if (~isempty(p.Results.referenceImage))
-                this.referenceImage_ = p.Results.referenceImage; end
-            this.roi_                = p.Results.roi;
-            this.segmentation_       = p.Results.segmentation;
-            this.segstats_           = p.Results.segstats;
-            this.surferFs_           = SurferFilesystem(p.Results.sessionPath); 
-            this.targetId_           = p.Results.targetId;            
-            if (~isempty(p.Results.mask))
-                this.mask_           = p.Results.mask;
+            parse(ip, varargin{:});
+            
+            this.sessionData_        = ip.Results.sessionData;
+            this.dat_                = ip.Results.dat;
+            this.targetId_           = ip.Results.fsaverage;
+            this.product_            = ip.Results.image;
+            if (~isempty(ip.Results.product))
+                this.product_        = ip.Results.product; end
+            this.referenceImage_     = ip.Results.reference;
+            if (~isempty(ip.Results.referenceImage))
+                this.referenceImage_ = ip.Results.referenceImage; end
+            this.roi_                = ip.Results.roi;
+            this.segmentation_       = ip.Results.segmentation;
+            this.segstats_           = ip.Results.segstats;
+            this.surferFs_           = SurferFilesystem(ip.Results.sessionPath); 
+            this.targetId_           = ip.Results.targetId;            
+            if (~isempty(ip.Results.mask))
+                this.mask_ = ip.Results.mask;
             else
-                this.mask_ = mlfourd.ImagingContext( ....
-                    fullfile(this.fslPath, filename('bt1_default_mask')));
+                this.mask_ = this.defaultMask;
             end
-            if (~isempty(p.Results.structural))
-                this.structural_     = p.Results.structural;
+            if (~isempty(ip.Results.structural))
+                this.structural_ = ip.Results.structural;
             else
-                this.structural_ = mlfourd.ImagingContext( ...
-                    fullfile(this.fslPath, filename('bt1_default_restore')));
+                this.structural_ = this.defaultT1;
             end 
             
             %% For freesurfer
             setenv('SUBJECTS_DIR', this.studyPath)
- 		end 
+        end         
     end 
     
     %% PROTECTED
@@ -365,13 +377,13 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
         roi_
         segmentation_
         segstats_
+        sessionData_
         sessionPath_
         structural_
-        t1_
-        t2_
-        targetId_
-        
         surferFs_
+        t1_
+        t2_     
+        targetId_   
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 

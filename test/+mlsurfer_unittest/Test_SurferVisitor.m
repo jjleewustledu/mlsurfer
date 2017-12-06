@@ -1,4 +1,4 @@
-classdef Test_SurferVisitor < mlsurfer_unittest.Test_mlsurfer
+classdef Test_SurferVisitor < matlab.unittest.TestCase
 	%% TEST_SURFERVISITOR 
 
 	%  Usage:  >> results = run(mlsurfer_unittest.Test_SurferVisitor)
@@ -13,17 +13,38 @@ classdef Test_SurferVisitor < mlsurfer_unittest.Test_mlsurfer
  	%% It was developed on Matlab 8.5.0.197613 (R2015a) for MACI64.
  	
 
-	properties
+    properties
  		testObj
         bldr
         segOnNative
+        sessionFolder = 'mm01-020_p7377_2009feb5'
+        showViewers   = true
+        subjectsDir   = '/Volumes/SeagateBP4/cvl/np755'
         surfOnNative
- 	end
+    end
+    
+	properties (Dependent)
+        fslPath
+        mriPath
+        sessionPath
+    end    
+    
+    methods %% GET
+        function g = get.fslPath(this)
+            g = fullfile(this.sessionPath, 'fsl', '');
+        end
+        function g = get.mriPath(this)
+            g = fullfile(this.sessionPath, 'mri', '');
+        end
+        function g = get.sessionPath(this)
+            g = fullfile(this.subjectsDir, this.sessionFolder, '');
+        end
+    end
 
 	methods (Test) 		
         function test_viewSurfaceOnNativeAnatomy(this)
             this.bldr.product = mlfourd.ImagingContext.load( ...
-                fullfile(this.mriPath, 'rawavg.mgz'));
+                fullfile(this.mriPath, 'T1.mgz'));
             if (this.showViewers)
                 this.testObj.viewSurfaceOnNativeAnatomy(this.bldr, 'lh');
             end
@@ -61,14 +82,16 @@ classdef Test_SurferVisitor < mlsurfer_unittest.Test_mlsurfer
  	methods (TestClassSetup)
  		function setupSurferVisitor(this)
             import mlsurfer.* mlfourd.*;
+            setenv('SUBJECTS_DIR', this.subjectsDir);
             this.bldr = SurferBuilderPrototype( ...
                 'sessionPath',    this.sessionPath, ...
-                'mask',           this.maskCntxt, ...
                 'product',        ImagingContext.load(fullfile(this.mriPath, 'brain.mgz')), ...
-                'referenceImage', ImagingContext.load(fullfile(this.mriPath, 'rawavg.mgz')), ...
-                'roi',            ImagingContext.load(fullfile(this.fslPath, 'bt1_default_mask.nii.gz')), ...
-                'segmentation',   ImagingContext.load(fullfile(this.mriPath, 'aseg_on_rawavg.mgz')));
+                'referenceImage', ImagingContext.load(fullfile(this.mriPath, 'T1.mgz')), ...
+                'segmentation',   ImagingContext.load(fullfile(this.mriPath, 'aparc.a2009s+aseg.mgz')));
             this.testObj = SurferVisitor('sessionPath', this.sessionPath);
+            
+            %   'mask',           this.maskCntxt, ... % bt1_default_mask
+            %   'roi',            ImagingContext.load(fullfile(this.fslPath, 'bt1_default_mask.nii.gz')), ...
  		end
  	end
 

@@ -15,8 +15,8 @@ classdef Test_Parcellations < matlab.unittest.TestCase
 
 	properties 
  		testObj 
-        colorLUTFilename = '/Volumes/PassportStudio2/cvl/np755/JJLColorLUTshort_20151002.txt';
-        sessionPath = '/Volumes/PassportStudio2/cvl/np755/mm01-020_p7377_2009feb5' 
+        colorLUTFilename = '/Volumes/SeagateBP4/cvl/np755/JJLColorLUTshort_20151002.txt'; % look on Passport drives
+        sessionPath = '/Volumes/SeagateBP4/cvl/np755/mm01-020_p7377_2009feb5' 
         cerebLabelNames = { ...
             'Cerebellum-White-Matter' 'Cerebellum-Cortex'};
         ctxLabelNames = { ...

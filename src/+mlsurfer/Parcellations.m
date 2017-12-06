@@ -19,8 +19,9 @@ classdef Parcellations
         HEMIS             = { 'lh' 'rh' }
         PARAMS            = { 'S0' 'CBF' 'CBV' 'MTT' 't0' 'alpha' 'beta' 'gamma' 'delta' 'eps' 'logProb' ...
                               'adc_default' 'dwi_default_meanvol' 'cvs' 'dsa' ...
-                              'oefnq_default_161616fwhh' 'oo_sumt_737353fwhh' 'ho_sumt_737353fwhh' }
-        PARAMS2           = { 'ho' 'oo' 'oc' }
+                              'oefnq_default_161616fwhh' 'oo_sumt_737353fwhh' 'ho_sumt_737353fwhh' ...
+                              'oefnq_default_101010fwhh_on_MNI152_T1_1mm_brain'}
+        PARAMS2           = { 'ho' 'oo' 'oc' 'oefratio'}
         PARAMS3           = { 'thickness' 'thicknessStd' 'area' 'volume' 'meancurv' }
         PARAMS_ALL        = [ mlsurfer.Parcellations.PARAMS ...
                               mlsurfer.Parcellations.PARAMS2 ...
@@ -36,13 +37,16 @@ classdef Parcellations
         surferFilesystem
     end
     
-    methods %% GET/SET
+    methods 
+        
+        %% GET
+        
         function x = get.surferFilesystem(this)
             x = this.surferFs_;
         end
-    end
+
+        %%
     
-	methods 
  		function this = Parcellations(varargin) 
  			%% PARCELLATIONS 
  			%  Usage:  this = Parcellations([surfer_filesystem_object]['SessionPath', path_to_session_data]) 
@@ -289,6 +293,7 @@ classdef Parcellations
                                     this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
                                     this.cachedAcaLabels_    = [this.cachedAcaLabels_    rgxnames.segname];
                                     this.cachedAcaMaxLabels_ = [this.cachedAcaMaxLabels_ rgxnames.segname];
+                                    this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
                                 case 'aca_min'
                                     this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
                                     this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
@@ -308,8 +313,10 @@ classdef Parcellations
                                     this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
                                 case 'pca'
                                     this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
                                     this.cachedPcaLabels_    = [this.cachedPcaLabels_    rgxnames.segname];
                                     this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
+                                    this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
                                 case 'pca_min'
                                     this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
                                     this.cachedPcaLabels_    = [this.cachedPcaLabels_    rgxnames.segname];
@@ -322,11 +329,13 @@ classdef Parcellations
                                     this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
                                 case 'border_mca_pca'
                                     this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
+                                    this.cachedAcaMcaLabels_ = [this.cachedAcaMcaLabels_ rgxnames.segname];
                                     this.cachedMcaMaxLabels_ = [this.cachedMcaMaxLabels_ rgxnames.segname];
                                     this.cachedPcaMaxLabels_ = [this.cachedPcaMaxLabels_ rgxnames.segname];
                                 case 'sinus'
                                     this.cachedSinusLabels_  = [this.cachedSinusLabels_  rgxnames.segname];
                                 case 'cereb'
+                                    this.cachedAllLabels_    = [this.cachedAllLabels_    rgxnames.segname];
                                     this.cachedCerebLabels_  = [this.cachedCerebLabels_  rgxnames.segname];
                             end
                         end

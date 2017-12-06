@@ -37,7 +37,29 @@ classdef SurferFilesystem < mlsurfer.ISurferFilesystem
         t2Prefix
     end
     
-    methods %% GET/SET        
+    methods (Static)
+        function fn = datFilename(varargin)
+            ip = inputParser;
+            addRequired(ip, 'path',   @(x) isempty(x) || lexist(x, 'dir'));
+            addRequired(ip, 'prefix', @(x) ischar(x) && ~isempty(x));
+            parse(ip, varargin{:});
+            fn = fullfile(ip.Results.path, ...
+                 sprintf('%s%s', ip.Results.prefix, mlsurfer.SurferRegistry.instance.datSuffix));
+        end
+        function fn = statsFilename(varargin)
+            ip = inputParser;
+            addRequired(ip, 'path',   @(x) isempty(x) || lexist(x, 'dir'));
+            addRequired(ip, 'prefix', @(x) ischar(x) && ~isempty(x));
+            parse(ip, varargin{:});
+            fn = fullfile(ip.Results.path, ...
+                 sprintf('%s%s', ip.Results.prefix, mlsurfer.SurferRegistry.instance.statsSuffix));
+        end
+    end
+    
+    methods 
+        
+        %% GET/SET        
+        
         function pth  = get.fslPath(this)
             pth = fullfile(this.sessionPath, 'fsl', '');
         end
@@ -96,50 +118,20 @@ classdef SurferFilesystem < mlsurfer.ISurferFilesystem
         function x    = get.t2Prefix(this)
             x = this.registry_.t2Prefix;
         end
-    end
-    
-    methods (Static)
-        function fn = datFilename(varargin)
-            ip = inputParser;
-            addRequired(ip, 'path',   @(x) isempty(x) || lexist(x, 'dir'));
-            addRequired(ip, 'prefix', @(x) ischar(x) && ~isempty(x));
-            parse(ip, varargin{:});
-            fn = fullfile(ip.Results.path, ...
-                 sprintf('%s%s', ip.Results.prefix, mlsurfer.SurferRegistry.instance.datSuffix));
-        end
-        function fn = statsFilename(varargin)
-            ip = inputParser;
-            addRequired(ip, 'path',   @(x) isempty(x) || lexist(x, 'dir'));
-            addRequired(ip, 'prefix', @(x) ischar(x) && ~isempty(x));
-            parse(ip, varargin{:});
-            fn = fullfile(ip.Results.path, ...
-                 sprintf('%s%s', ip.Results.prefix, mlsurfer.SurferRegistry.instance.statsSuffix));
-        end
-    end
-    
-	methods 		  
- 		function this   = SurferFilesystem(varargin) 
- 			%% SURFERFILESYSTEM 
- 			%  Usage:  this = SurferFilesystem(path_to_session) 
-
-            this.registry_ = mlsurfer.SurferRegistry.instance;
-            ip = inputParser;
-            addOptional(ip, 'sessPth', pwd, @(x) this.isaSessionPath(x));
-            parse(ip, varargin{:});
-            assert(this.isaSessionPath(ip.Results.sessPth)); %% KLUDGE
-            this.sessionPath_ = ip.Results.sessPth;
-        end 
+        
+        %%
+        
         function tf     = isaSessionPath(this, pth)
             tf = true;
             assert(ischar(pth),        'SurferFilesystem.isaSessionPath.pth was not char');
             assert(~isempty(pth),      'SurferFilesystem.isaSessionPath.pth was empty');
             assert(lexist(pth, 'dir'), 'SurferFilesystem.isaSessionPath:  %s does not exist', pth);
-            try
-                this.sessionPathParts(pth); % test if pth is well-formed
-            catch ME
-                error('mlsurfer:filesystemErr', ...
-                      'SurferFilesystem.isaSessionPath could not recognize %s as a session path', pth);
-            end
+%             try
+%                 this.sessionPathParts(pth); % test if pth is well-formed
+%             catch ME
+%                 error('mlsurfer:filesystemErr', ...
+%                       'SurferFilesystem.isaSessionPath could not recognize %s as a session path', pth);
+%             end
         end
         function [mm,p] = sessionPathParts(this, pth)
             re = regexp(pth, this.sessionRegexp, 'names');
@@ -157,6 +149,18 @@ classdef SurferFilesystem < mlsurfer.ISurferFilesystem
             parse(ip, varargin{:});            
             fqfn = fullfile(this.fslPath, [ip.Results.hemi '_' ip.Results.fileprefix this.statsSuffix]);
         end
+        
+ 		function this   = SurferFilesystem(varargin) 
+ 			%% SURFERFILESYSTEM 
+ 			%  Usage:  this = SurferFilesystem(path_to_session) 
+
+            this.registry_ = mlsurfer.SurferRegistry.instance;
+            ip = inputParser;
+            addOptional(ip, 'sessPth', pwd, @(x) this.isaSessionPath(x));
+            parse(ip, varargin{:});
+            assert(this.isaSessionPath(ip.Results.sessPth)); %% KLUDGE
+            this.sessionPath_ = ip.Results.sessPth;
+        end 
     end 
     
     %% PRIVATE

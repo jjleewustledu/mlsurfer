@@ -1,5 +1,6 @@
 classdef SurferDirectorDecorator < mlsurfer.SurferDirectorComponent
-	%% SURFERDIRECTORDECORATOR   
+	%% SURFERDIRECTORDECORATOR maintains a reference to a SurferDirectorComponent object and 
+    %  defines an interface that conforms to the interface of SurferDirectorComponent.
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -17,7 +18,10 @@ classdef SurferDirectorDecorator < mlsurfer.SurferDirectorComponent
         dat
     end 
 
-    methods %% SET/GET
+    methods 
+        
+        %% SET/GET
+        
         function this = set.builder(this, bldr)
             this.component_.builder = bldr;
         end
@@ -42,9 +46,9 @@ classdef SurferDirectorDecorator < mlsurfer.SurferDirectorComponent
         function bldr = get.dat(this)
             bldr = this.component_.dat;
         end
-    end
-    
-	methods
+        
+        %%
+        
         function prd  = reconAll(this, varargin)
             %% RECONALL follows
             %  http://surfer.nmr.mgh.harvard.edu/fswiki/BasicReconstruction

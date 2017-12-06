@@ -14,6 +14,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
         ALIGN_WITH_TR       = false
         NORM_BY_DOSE_SUFFIX = '_normByDose'
         SESSION_PATTERN     = 'p*' % for use by DirTool
+        STUDY_PATH          = '/Volumes/SeagateBP3/cvl/controls/pet'
     end
     
 	    
@@ -119,7 +120,7 @@ classdef PETControlsSegstatsBuilder < mlsurfer.SurferBuilderPrototype
             %                                                         'doAlignment', logical ^
             
             p = inputParser;
-            addOptional(p, 'studyPath',   pwd,   @isdir);
+            addOptional(p, 'studyPath',   this.STUDY_PATH,   @isdir);
             addOptional(p, 'doAlignment', false, @islogical);
             parse(p, varargin{:});
             

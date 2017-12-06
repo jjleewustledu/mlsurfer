@@ -34,8 +34,8 @@ classdef GroupParcellations
             this.theMap = containers.Map;
             for d = 1:dt.length
                 aParc = Parcellations('SessionPath', dt.fqdns{d});
-                lh = aParc.segidentifiedStatsMap('lh', 'thickness', 'all_aca_mca');
-                rh = aParc.segidentifiedStatsMap('rh', 'thickness', 'all_aca_mca');
+                lh = aParc.segidentifiedStatsMap('lh', 'thickness', 'all');
+                rh = aParc.segidentifiedStatsMap('rh', 'thickness', 'all');
                 this.theMap(dt.fqdns{d}) = struct('lh', lh, 'rh', rh);
             end
             this.theDirTools = dt;

@@ -15,7 +15,8 @@ classdef SurferData
     properties 
         subjectsDir
         parameter = 'thickness'
-        territory = 'all_aca_mca'
+        territory = 'all'
+        statistic = 'mean'
     end
     
 	properties (Dependent)
@@ -33,7 +34,7 @@ classdef SurferData
         function [m,ids,this] = brain(this, varargin)
             import mlsurfer.*;
             ip = inputParser;
-            addParameter(ip, 'Path',      this.subjectsDir, @(x) lexist(x,'dir'));
+            addParameter(ip, 'subjectsDir',      this.subjectsDir, @(x) lexist(x,'dir'));
             addParameter(ip, 'Parameter', this.parameter,   @(x) lstrfind(x, Parcellations.PARAMS_ALL));
             addParameter(ip, 'Territory', this.territory,   @(x) lstrfind(x, Parcellations.TERRITORIES));
             parse(ip, varargin{:});
@@ -43,18 +44,18 @@ classdef SurferData
                                      'Territory', ip.Results.Territory);
             [m,ids] = this.itsImplementation_.itsMetric;
         end
-        function m = brainOefratio(this)            
-            ooCereb = this.brain('Path',      this.subjectsDir, ...
+        function m = brainOefratio(this)
+            ooCereb = this.brain('subjectsDir',      this.subjectsDir, ...
                                  'Parameter', 'oo_sumt_737353fwhh', ...
                                  'Territory', 'cereb'); 
-            hoCereb = this.brain('Path',      this.subjectsDir, ...
+            hoCereb = this.brain('subjectsDir',      this.subjectsDir, ...
                                  'Parameter', 'ho_sumt_737353fwhh', ...
                                  'Territory', 'cereb'); 
             
-            ooCortex = this.brain('Path',      this.subjectsDir, ...
+            ooCortex = this.brain('subjectsDir',      this.subjectsDir, ...
                                   'Parameter', 'oo_sumt_737353fwhh', ...
                                   'Territory', this.territory);  
-            hoCortex = this.brain('Path',      this.subjectsDir, ...
+            hoCortex = this.brain('subjectsDir',      this.subjectsDir, ...
                                   'Parameter', 'ho_sumt_737353fwhh', ...
                                   'Territory', this.territory);
             m = (ooCortex/mean(ooCereb)) ./ (hoCortex/mean(hoCereb));
@@ -62,7 +63,7 @@ classdef SurferData
         function [m,ids,sess,this] = cohort(this, varargin)
             import mlsurfer.*;
             ip = inputParser;
-            addParameter(ip, 'Path',      this.subjectsDir, @(x) lexist(x,'dir'));
+            addParameter(ip, 'subjectsDir',      this.subjectsDir, @(x) lexist(x,'dir'));
             addParameter(ip, 'Parameter', this.parameter,   @(x) lstrfind(x, Parcellations.PARAMS_ALL));
             addParameter(ip, 'Territory', this.territory,   @(x) lstrfind(x, Parcellations.TERRITORIES));
             parse(ip, varargin{:});
@@ -75,7 +76,7 @@ classdef SurferData
         function [m,ids,sess,this] = cohortIndex(this, varargin)
             import mlsurfer.*;
             ip = inputParser;
-            addParameter(ip, 'Path',      this.subjectsDir, @(x) lexist(x,'dir'));
+            addParameter(ip, 'subjectsDir',      this.subjectsDir, @(x) lexist(x,'dir'));
             addParameter(ip, 'Parameter', this.parameter,   @(x) lstrfind(x, Parcellations.PARAMS_ALL));
             addParameter(ip, 'Territory', this.territory,   @(x) lstrfind(x, Parcellations.TERRITORIES));
             parse(ip, varargin{:});
@@ -89,7 +90,7 @@ classdef SurferData
         function [m,ids,sess,this] = cohortCerebOefnq(this, varargin)
             import mlsurfer.*;
             ip = inputParser;
-            addParameter(ip, 'Path', this.subjectsDir, @(x) lexist(x,'dir'));
+            addParameter(ip, 'subjectsDir', this.subjectsDir, @(x) lexist(x,'dir'));
             parse(ip, varargin{:});
             
             this.itsImplementation_ = CohortCerebOefnq(ip.Results.Path);
@@ -97,32 +98,32 @@ classdef SurferData
         end
                 
         function [m,ids,sess] = cohortDsa(this)
-            [m,ids,sess] = this.cohort('Path',      this.subjectsDir, ...
+            [m,ids,sess] = this.cohort('subjectsDir',      this.subjectsDir, ...
                                        'Parameter', 'dsa', ...
                                        'Territory', this.territory);  
         end
         function [m,ids,sess] = cohortThickness(this)
-            [m,ids,sess] = this.cohort('Path',      this.subjectsDir, ...
+            [m,ids,sess] = this.cohort('subjectsDir',      this.subjectsDir, ...
                                        'Parameter', 'thickness', ...
                                        'Territory', this.territory);  
         end
         function [m,ids,sess] = cohortThicknessIndex(this)  
-            [m,ids,sess] = this.cohortIndex('Path',      this.subjectsDir, ...
+            [m,ids,sess] = this.cohortIndex('subjectsDir',      this.subjectsDir, ...
                                             'Parameter', 'thickness', ...
                                             'Territory', this.territory);          
         end        
-        function [m,ids,sess] = cohortOefratio(this)            
-            ooCereb = this.cohort('Path',      this.subjectsDir, ...
+        function [m,ids,sess] = cohortOefratio(this)
+            ooCereb = this.cohort('subjectsDir',      this.subjectsDir, ...
                                   'Parameter', 'oo_sumt_737353fwhh', ...
                                   'Territory', 'cereb'); 
-            hoCereb = this.cohort('Path',      this.subjectsDir, ...
+            hoCereb = this.cohort('subjectsDir',      this.subjectsDir, ...
                                   'Parameter', 'ho_sumt_737353fwhh', ...
                                   'Territory', 'cereb'); 
             
-            ooCortex = this.cohort('Path',      this.subjectsDir, ...
+            ooCortex = this.cohort('subjectsDir',      this.subjectsDir, ...
                                    'Parameter', 'oo_sumt_737353fwhh', ...
                                    'Territory', this.territory);  
-            [hoCortex,ids,sess] = this.cohort('Path',      this.subjectsDir, ...
+            [hoCortex,ids,sess] = this.cohort('subjectsDir',      this.subjectsDir, ...
                                    'Parameter', 'ho_sumt_737353fwhh', ...
                                    'Territory', this.territory);          
             for b = 1:length(ooCortex)
@@ -136,15 +137,18 @@ classdef SurferData
             %                            ^ 'SubjectsDir', 'Parameter', 'Territory'
             
             import mlsurfer.*;
-            ip = inputParser;            
-            addParameter(ip, 'Path',      getenv('SUBJECTS_DIR'), @(x) lexist(x,'dir'));
+            ip = inputParser;   
+            ip.KeepUnmatched = true;
+            addParameter(ip, 'subjectsDir', getenv('SUBJECTS_DIR'), @isdir);
             addParameter(ip, 'Parameter', this.parameter,   @(x) lstrfind(x, Parcellations.PARAMS_ALL));
             addParameter(ip, 'Territory', this.territory,   @(x) lstrfind(x, Parcellations.TERRITORIES));
+            addParameter(ip, 'Statistic', this.statistic,   @(x) lstrfind(x, Parcellations.STATISTICS));
             parse(ip, varargin{:});
             
-            this.subjectsDir = ip.Results.Path;
+            this.subjectsDir = ip.Results.subjectsDir;
             this.parameter   = ip.Results.Parameter;
             this.territory   = ip.Results.Territory;
+            this.statistic   = ip.Results.Statistic;
  		end 
     end 
     

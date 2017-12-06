@@ -1,5 +1,6 @@
 classdef SurferDirector < mlsurfer.SurferDirectorComponent
-	%% SURFERDIRECTOR is the highest level of abstraction for a builder pattern for Freesurfer
+	%% SURFERDIRECTOR constructs an object using the SurferBuilder interface.  
+    %  It participates in a builder design pattern for Freesurfer.
     
 	%  $Revision: 2613 $ 
     %  $Date: 2013-09-07 19:15:52 -0500 (Sat, 07 Sep 2013) $
@@ -17,7 +18,10 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
         dat
     end
     
-	methods (Static) %% LEGACY
+	methods (Static) 
+        
+        %% LEGACY
+        
         function this = createFromMrPath(pth)
             import mlsurfer.*;
             this = SurferDirector.createFromBuilder( ...
@@ -69,7 +73,10 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
         end
     end 
     
-    methods %% SET/GET
+    methods 
+        
+        %% SET/GET
+        
         function this = set.builder(this, bldr)
             assert(isa(bldr, 'mlsurfer.SurferBuilder'));
             this.builder_ = bldr;
@@ -95,16 +102,17 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
         function d    = get.dat(this)
             d = this.builder_.dat;
         end
-    end
-    
-    methods
+        
+        %%
+        
         function      this  = reconAll(this, varargin)
-            %% RECONALL follows
+            %% RECONALL 
+            %  See also:
             %  http://surfer.nmr.mgh.harvard.edu/fswiki/BasicReconstruction
             %  http://surfer.nmr.mgh.harvard.edu/fswiki/FsFastUnpackData
             %  Usage:  SurferDirector.reconAll(fully_qualified_modality_path)           
             
-            this.builder = this.builder.reconAll(varargin{:});
+            this.builder_ = this.builder_.reconAll(varargin{:});
         end 
         function [prd,this] = estimateRoi(this)
         end
@@ -117,10 +125,11 @@ classdef SurferDirector < mlsurfer.SurferDirectorComponent
  			%% SURFERDIRECTOR 
             %  Usage:   obj = SurferDirector('SurferBuilder', a_surfer_builder)
 
-            p = inputParser;
-            addOptional(p, 'bldr', mlfsurfer.SurferBuilderPrototype, @(x) isa(x, 'mlsurfer.SurferBuilder'));
-            parse(p, varargin{:});
-            this.builder_ = p.Results.bldr;
+            ip = inputParser;
+            ip.KeepUnmatched = true;
+            addOptional(ip, 'bldr', mlfsurfer.SurferBuilderPrototype, @(x) isa(x, 'mlsurfer.SurferBuilder'));
+            parse(ip, varargin{:});
+            this.builder_ = ip.Results.bldr;
         end
     end
     

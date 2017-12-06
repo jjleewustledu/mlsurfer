@@ -16,6 +16,7 @@ classdef ParcellationSegments
         parameter
         hemisphere
         territory
+        statistic
         delta
         sessionPath
     end
@@ -85,18 +86,20 @@ classdef ParcellationSegments
             addRequired( p, 'parameter',          @ischar);
             addRequired( p, 'hemisphere',         @(x) strcmp('lh',x) || strcmp('rh',x));
             addParameter(p, 'Territory',  'all',  @(x) lstrfind(x, Parcellations.TERRITORIES));
+            addParameter(p, 'Statistic', 'mean', @ischar); 
             addParameter(p, 'Delta',       false, @islogical);
             addParameter(p, 'SessionPath', pwd,   @isdir);
             parse(p, param, hemis, varargin{:});
             this.parameter   = param;
             this.hemisphere  = hemis;
             this.territory   = p.Results.Territory;
+            this.statistic   = p.Results.Statistic;
             this.delta       = p.Results.Delta;
             this.sessionPath = p.Results.SessionPath;
             
             parc      = Parcellations( ...
                         SurferBuilderPrototype('SessionPath', p.Results.SessionPath));
-            this.map_ = parc.segidentifiedStatsMap(hemis, param, p.Results.Territory);
+            this.map_ = parc.segidentifiedStatsMap(hemis, param, this.territory, this.statistic);
  		end 
     end 
     

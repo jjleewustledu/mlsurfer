@@ -1,4 +1,4 @@
-classdef (Abstract) SurferDataImp < mlsurfer.ISurferDataImp
+classdef (Abstract) SurferDataImp
 	%% SURFERDATAIMP  
 
 	%  $Revision$
@@ -9,6 +9,10 @@ classdef (Abstract) SurferDataImp < mlsurfer.ISurferDataImp
  	%% It was developed on Matlab 8.5.0.197613 (R2015a) for MACI64.
  	
 
+	properties (Abstract)
+        parameter
+    end
+    
 	properties (Dependent)
         surferFilesystem
     end
@@ -19,6 +23,15 @@ classdef (Abstract) SurferDataImp < mlsurfer.ISurferDataImp
         end
     end
 
+    methods (Static, Abstract)
+        metric
+    end
+    
+	methods (Abstract)
+        itsMapValues(this)
+        itsMapKeys(this)
+    end 
+    
 	methods 		  
  		function this = SurferDataImp(pth)
  			%% SURFERDATAIMP
