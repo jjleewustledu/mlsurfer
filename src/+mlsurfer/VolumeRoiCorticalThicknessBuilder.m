@@ -189,6 +189,7 @@ classdef VolumeRoiCorticalThicknessBuilder < mlsurfer.SurferBuilderPrototype
             this.segmentation_ = p.Results.segmentation;
             this.targetId_     = p.Results.targetId;
             cd(this.sessionPath)
+            setenv('PATH', [getenv('PATH') ':/usr/bin']);
             fprintf('\nmlsurfer.VolumeRoiCorticalThicknessBuilder.ctor:\n    SUBJECTS_DIR->%s\n    pwd->%s\n', ...
                     getenv('SUBJECTS_DIR'), pwd);
  		end 
