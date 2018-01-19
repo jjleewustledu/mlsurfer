@@ -1,4 +1,4 @@
-classdef Aseg < mlsurfer.AbstractAparcAseg
+classdef Aseg < mlsurfer.AparcAsegNaming & mlrois.IRois
 	%% ASEG 
     %  All public properties are region names. 
 
@@ -50,7 +50,7 @@ classdef Aseg < mlsurfer.AbstractAparcAseg
  			%% ASEG
  			%  Usage:  this = Aseg()
 
- 			this = this@mlsurfer.AbstractAparcAseg(varargin{:});
+ 			this = this@mlsurfer.AparcAsegNaming(varargin{:});
  		end
  	end 
 

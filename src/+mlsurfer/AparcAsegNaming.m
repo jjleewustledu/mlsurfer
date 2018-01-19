@@ -1,5 +1,5 @@
-classdef AbstractAparcAseg < mlrois.IRois
-	%% ABSTRACTAPARCASEG defers all public properties to subclasses for naming parcellations & segmentations.
+classdef AparcAsegNaming
+	%% APARCASEGNAMING defers all public properties to subclasses for naming parcellations & segmentations.
 
 	%  $Revision$
  	%  was created 02-Mar-2017 13:49:24 by jjlee,
@@ -9,8 +9,8 @@ classdef AbstractAparcAseg < mlrois.IRois
     
 	methods 
 		  
- 		function this = AbstractAparcAseg(varargin)
- 			%% ABSTRACTAPARCASEG
+ 		function this = AparcAsegNaming(varargin)
+ 			%% APARCASEGNAMING
  			%  @param aparcAseg is an mlfourd.ImagingContext containing parcellation & segmentation numbers.
 
             ip = inputParser;
@@ -43,7 +43,7 @@ classdef AbstractAparcAseg < mlrois.IRois
                     this.regionNumberedMask(reg), ip.Results.exclude), ip.Results.fileprefix);
                 return
             end
-            error('mlsurfer:unsupportedParamTypeclass', 'class(AbstractAparcAseg.regionMask.reg)->%s', class(reg));
+            error('mlsurfer:unsupportedParamTypeclass', 'class(AparcAsegNaming.regionMask.reg)->%s', class(reg));
         end
         function n = regionNames(this)
             % @returns row cell of strings

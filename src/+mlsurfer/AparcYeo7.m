@@ -1,4 +1,4 @@
-classdef AparcYeo7 < mlsurfer.AbstractAparcAseg
+classdef AparcYeo7 < mlsurfer.AparcAsegNaming & mlrois.IRois
 	%% APARCYEO7 describes parcellations described in 
     %  Yeo BTT, et al. (2011) The organization of the human cerebral cortex estimated by intrinsic functional connectivity.
     %  J Neurophysiol 106(3):1125?1165.
@@ -28,7 +28,7 @@ classdef AparcYeo7 < mlsurfer.AbstractAparcAseg
  			%% APARCYEO7
  			%  Usage:  this = AparcYeo7()
 
- 			this = this@mlsurfer.AbstractAparcAseg(varargin{:});
+ 			this = this@mlsurfer.AparcAsegNaming(varargin{:});
  		end
  	end 
 

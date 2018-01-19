@@ -34,6 +34,21 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor0
             this = mlsurfer.SurferVisitor('product', bldr.product, 'sessionPath', bldr.sessionPath);
             setenv('SUBJECTS_DIR', this.studyPath);
         end 
+        function fn    = mri_convert(fn, varargin)
+            %% MRI_CONVERT
+            %  @param fn is the source possessing a filename extension recognized by mri_convert
+            %  @param fn is the destination, also recognized by mri_convert.  Optional.  Default is [fileprefix(fn) '.nii.gz'] 
+            
+            import mlpipeline.*;
+            ip = inputParser;
+            addRequired(ip, 'fn',                                 @(x) lexist(x, 'file'));
+            addOptional(ip, 'fn2', SessionData.niigzFilename(fn), @ischar);
+            parse(ip, fn, varargin{:});            
+            
+            fprintf('mlpipeline.SessionData.mri_convert is working on %s\n', ip.Results.fn);
+            mlpipeline.PipelineVisitor.cmd('mri_convert', ip.Results.fn, ip.Results.fn2);
+            fn = ip.Results.fn2;
+        end
     end 
     
 	methods %% GET/SET
