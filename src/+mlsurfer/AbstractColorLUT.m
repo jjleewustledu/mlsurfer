@@ -41,7 +41,7 @@ classdef AbstractColorLUT < mlsurfer.ColorLUTInterface
  			%  Usage:  this = AbstractColorLUT() 
             
  			this.lutFqFilename_ = ...
-                fullfile(getenv('SRCDIR'), 'mlcvl', 'mlsurfer', 'src', '+mlsurfer', 'aparc.a2009s.ColorLUT.txt');
+                fullfile(getenv('HOME'), 'MATLAB-Drive', 'mlsurfer', 'src', '+mlsurfer', 'aparc.a2009s.ColorLUT.txt');
             this.colorLUT_ = mlio.TextIO.textfileToCell(this.lutFqFilename_);
             this.colorLUT_ = this.cleanLUT(this.colorLUT_);
             [idxs,lbls]    = this.createKeys;
