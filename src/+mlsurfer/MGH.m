@@ -13,16 +13,6 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
     properties (Constant) 
         MGH_EXT = '.mgz';
     end
-
-	properties (Dependent)
-        niftid
-    end
-    
-    methods %% Get
-        function g = get.niftid(this)
-            g = this.component;
-        end
-    end
     
     methods (Static)
         function this  = load(varargin)
@@ -32,18 +22,6 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
             import mlfourd.*;
             this = mlsurfer.MGH(NIfTId.load(varargin{:}));
         end
-        function niifn = mghFilename2niiFilename(mghfn)
-            fqfp  = mghfn(1:end-length(mlsurfer.MGH.MGH_EXT));
-            niifn = filename(fqfp);
-            if (~lexist(niifn, 'file'))
-                mlsurfer.MGH.mri_convert(mghfn, niifn); end
-        end
-        function mghfn = niiFilename2mghFilename(niifn)
-            fqfp  = niifn(1:end-length(mlfourd.INIfTId.FILETYPE_EXT));
-            mghfn = [fqfp mlsurfer.MGH.MGH_EXT];
-            if (~lexist(mghfn, 'file'))
-                mlsurfer.MGH.mri_convert(niifn, mghfn); end
-        end
     end    
     
     methods
@@ -52,7 +30,7 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
         end
         function       save(this)
             this.component.save;
-            mlsurfer.MGH.mri_convert([this.fqfp this.FILETYPE_EXT], [this.fqfp this.MGH_EXT]);
+            mlfourd.MGHState.mri_convert([this.fqfp '.nii'], [this.fqfp this.MGH_EXT]);
             deleteExisting([this.fqfp '.nii']);
             deleteExisting([this.fqfp '.nii.gz']);
         end
@@ -62,7 +40,7 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
             if (isempty(x))
                 fqfp = fullfile(pth, fp);
                 obj.component = this.component.saveas([fqfp this.FILETYPE_EXT]);
-                mlsurfer.MGH.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
+                mlfourd.MGHState.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
                 obj.filesuffix = this.MGH_EXT;
                 deleteExisting([fqfp '.nii']);
                 deleteExisting([fqfp '.nii.gz']);
@@ -82,26 +60,7 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
                 return
             end
             this = this.append_descrip('decorated by mlsurfer.MGH');
-        end
-    end
-
-    %% PRIVATE
-    
-    methods (Static, Access = 'private')
-        function f2 = mri_convert(f1, f2)
-            assert(lexist(f1, 'file'), sprintf('MGH.mri_convert:  file not found:  %s', f1));
-            if (~exist('f2', 'var'))
-                [~,~,fsuffix] = myfileparts(f1);
-                if (strcmp('.nii.gz', fsuffix) || strcmp('.nii', fsuffix))
-                    f2 = filename( ...
-                         fileprefix(f1, fsuffix), mlsurfer.MGH.MGH_EXT); 
-                end
-                if (strcmp('.mgz', fsuffix)    || strcmp('.mgh', fsuffix))
-                    f2 = filename( ...
-                         fileprefix(f1, fsuffix), mlfourd.NIfTI.FILETYPE_EXT); 
-                end
-            end
-            mlbash(sprintf('mri_convert %s %s', f1, f2));
+            this.filesuffix = this.MGH_EXT;
         end
     end
     
