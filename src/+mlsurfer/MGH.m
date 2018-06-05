@@ -30,9 +30,6 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
         end
         function       save(this)
             this.component.save;
-            mlfourd.MGHState.mri_convert([this.fqfp '.nii'], [this.fqfp this.MGH_EXT]);
-            deleteExisting([this.fqfp '.nii']);
-            deleteExisting([this.fqfp '.nii.gz']);
         end
         function obj = saveas(this, fqfn)
             obj = this.clone;
