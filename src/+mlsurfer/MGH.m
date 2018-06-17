@@ -57,7 +57,7 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
                 return
             end
             this = this.append_descrip('decorated by mlsurfer.MGH');
-            this.filesuffix = this.MGH_EXT;
+            this.component_.filesuffix = this.MGH_EXT;
         end
     end
     
