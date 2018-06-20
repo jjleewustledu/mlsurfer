@@ -36,14 +36,14 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
             [pth,fp,x] = myfileparts(fqfn);
             if (isempty(x))
                 fqfp = fullfile(pth, fp);
-                obj.component = this.component.saveas([fqfp this.FILETYPE_EXT]);
+                obj.component_ = this.component.saveas([fqfp this.FILETYPE_EXT]);
                 mlfourd.MGHState.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
                 obj.filesuffix = this.MGH_EXT;
                 deleteExisting([fqfp '.nii']);
                 deleteExisting([fqfp '.nii.gz']);
                 return
             end
-            obj.component = this.component.saveas(fqfn);
+            obj.component_ = this.component.saveas(fqfn);
         end
         
         function this = MGH(cmp, varargin) %#ok<VANUS>
