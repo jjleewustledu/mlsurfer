@@ -11,7 +11,11 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
  	%  $Id$  
     
     properties (Constant) 
-        MGH_EXT = '.mgz';
+        FILETYPE      = 'MGZ'
+        FILETYPE_EXT  = '.mgz'
+        MGH_EXT       = '.mgz';
+        SUPPORTED_EXT = {'.mgh' '.mgz' '.ge' '.gelx' '.lx' '.ximg' '.IMA' '.dcm' '.afni' '.bshort' '.bfloat' '.sdt'} 
+        % '.img' is SPM format to mri_convert
     end
     
     methods (Static)
@@ -36,8 +40,8 @@ classdef MGH < mlfourd.NIfTIdecoratorProperties
             [pth,fp,x] = myfileparts(fqfn);
             if (isempty(x))
                 fqfp = fullfile(pth, fp);
-                obj.component_ = this.component.saveas([fqfp this.FILETYPE_EXT]);
-                mlfourd.MGHState.mri_convert([fqfp this.FILETYPE_EXT], [fqfp this.MGH_EXT]);
+                obj.component_ = this.component.saveas([fqfp this.MGH_EXT]);
+                mlfourd.MGHState.mri_convert([fqfp this.filesuffix], [fqfp this.MGH_EXT]);
                 obj.filesuffix = this.MGH_EXT;
                 deleteExisting([fqfp '.nii']);
                 deleteExisting([fqfp '.nii.gz']);

@@ -7,12 +7,6 @@ classdef SurferRegistry < mlpatterns.Singleton
  	%  last modified $LastChangedDate$
  	%  and checked into repository /Users/jjlee/Local/src/mlcvl/mlsurfer/src/+mlsurfer.
  	%% It was developed on Matlab 8.5.0.197613 (R2015a) for MACI64.
- 	
-    properties (Constant)
-        SUPPORTED_EXT = ...
-            {'.mgh' '.mgz' '.ge' '.gelx' '.lx' '.ximg' '.IMA' '.dcm' '.afni' '.bshort' '.bfloat' '.sdt' '.nii' '.nii.gz' '.img'}
-            % '.img' is SPM format
-    end
 
 	properties
         datSuffix   = '_to_fsanatomical.dat'
