@@ -107,7 +107,7 @@ classdef SurferData
                                        'Parameter', 'thickness', ...
                                        'Territory', this.territory);  
         end
-        function [m,ids,sess] = cohortThicknessIndex(this)  
+        function [m,ids,sess] = cohortThicknessIndex(this)
             [m,ids,sess] = this.cohortIndex('subjectsDir',      this.subjectsDir, ...
                                             'Parameter', 'thickness', ...
                                             'Territory', this.territory);          
@@ -143,8 +143,7 @@ classdef SurferData
             addParameter(ip, 'Parameter', this.parameter,   @(x) lstrfind(x, Parcellations.PARAMS_ALL));
             addParameter(ip, 'Territory', this.territory,   @(x) lstrfind(x, Parcellations.TERRITORIES));
             addParameter(ip, 'Statistic', this.statistic,   @(x) lstrfind(x, Parcellations.STATISTICS));
-            parse(ip, varargin{:});
-            
+            parse(ip, varargin{:});            
             this.subjectsDir = ip.Results.subjectsDir;
             this.parameter   = ip.Results.Parameter;
             this.territory   = ip.Results.Territory;
