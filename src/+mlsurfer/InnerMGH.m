@@ -117,6 +117,7 @@ classdef InnerMGH < mlfourd.AbstractInnerImagingFormat
         function save__(this)
             warning('off', 'MATLAB:structOnObject');
             try
+                assert(strcmp(this.filesuffix, '.mgz') || strcmp(this.filesuffix, '.mgh'));
                 mlniftitools.save_nii(struct(this), this.fqfileprefix_nii_gz);            
                 mlbash(sprintf('mri_convert %s %s', this.fqfileprefix_nii_gz, this.fqfilename));
                 deleteExisting(this.fqfileprefix_nii_gz);            
