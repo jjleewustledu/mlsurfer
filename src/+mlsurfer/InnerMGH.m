@@ -1,4 +1,4 @@
-classdef InnerMGH < mlfourd.AbstractInnerImagingFormat
+classdef InnerMGH < handle & mlfourd.AbstractInnerImagingFormat
 	%% INNERMGH  
 
 	%  $Revision$
@@ -46,20 +46,20 @@ classdef InnerMGH < mlfourd.AbstractInnerImagingFormat
         
         %% GET/SET
         
-        function x    = get.hdxml(~)
+        function x = get.hdxml(~)
             x = '';
         end
-        function o    = get.orient(this)
+        function o = get.orient(this)
             if (~isempty(this.orient_))
                 o = this.orient_;
                 return
             end
             o = '';
         end
-        function u    = get.untouch(this)
+        function u = get.untouch(this)
             u = this.imagingInfo_.untouch;
         end
-        function this = set.untouch(this, s)
+        function     set.untouch(this, s)
             this.imagingInfo_.untouch = logical(s);
         end
         
