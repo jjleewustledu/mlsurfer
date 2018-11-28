@@ -71,17 +71,6 @@ classdef InnerMGH < handle & mlfourd.AbstractInnerImagingFormat
         function E = fslEntropy(~)
             E = nan;
         end
-        
-        function this = InnerMGH(varargin)
- 			%  @param imagingInfo is an mlfourd.ImagingInfo object and is required; it may be an aufbau object.
-            
-            this = this@mlfourd.AbstractInnerImagingFormat(varargin{:});
-        end 
-    end
-    
-    %% PROTECTED
-    
-    methods (Access = protected)
         function this = mutateInnerImagingFormatByFilesuffix(this)
             import mlfourd.* mlfourdfp.* mlsurfer.*;  
             hdr_ = this.hdr;
@@ -111,6 +100,17 @@ classdef InnerMGH < handle & mlfourd.AbstractInnerImagingFormat
                         'InnerNIfTI.filesuffix->%s', this.filesuffix);
             end
         end
+        
+        function this = InnerMGH(varargin)
+ 			%  @param imagingInfo is an mlfourd.ImagingInfo object and is required; it may be an aufbau object.
+            
+            this = this@mlfourd.AbstractInnerImagingFormat(varargin{:});
+        end 
+    end
+    
+    %% PROTECTED
+    
+    methods (Access = protected)
     end
     
     %% HIDDEN
