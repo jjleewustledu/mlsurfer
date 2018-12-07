@@ -117,18 +117,23 @@ classdef InnerMGH < handle & mlfourd.AbstractInnerImagingFormat
     
     methods (Hidden) 
         function save__(this)
-            warning('off', 'MATLAB:structOnObject');
+            that = copy(this);
+            assert(strcmp(that.filesuffix, '.mgz') || ...
+                   strcmp(that.filesuffix, '.mgh') || ...
+                   strcmp(that.filesuffix, '.nii') || ...
+                   strcmp(that.filesuffix, '.nii.gz'));
             try
-                assert(strcmp(this.filesuffix, '.mgz') || strcmp(this.filesuffix, '.mgh'));
-                mlniftitools.save_nii(struct(this), this.fqfileprefix_nii_gz);            
-                mlbash(sprintf('mri_convert %s %s', this.fqfileprefix_nii_gz, this.fqfilename));
-                deleteExisting(this.fqfileprefix_nii_gz);            
+                warning('off', 'MATLAB:structOnObject');
+                mlniftitools.save_nii(struct(that), that.fqfileprefix_nii_gz);            
+                mlbash(sprintf('mri_convert %s %s', that.fqfileprefix_nii_gz, that.fqfileprefix_mgz));
+                %deleteExisting(this.fqfileprefix_nii_gz);  
+                %this.filesuffix = '.mgz';
+                warning('on', 'MATLAB:structOnObject');
             catch ME
                 dispexcept(ME, ...
                     'mlfourd:IOError', ...
-                    'InnerNIfTI.save_mgz erred while attempting to save %s', this.fqfilename);
+                    'InnerNIfTI.save_mgz erred while attempting to save %s', that.fqfilename);
             end
-            warning('on', 'MATLAB:structOnObject');
         end
     end
 
