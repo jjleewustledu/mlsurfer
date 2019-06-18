@@ -68,7 +68,7 @@ classdef Test_Stats2ImagingContext < matlab.unittest.TestCase
             oef = oefStruct.imagingContext;
             this.verifyClass(oef, 'mlfourd.ImagingContext');
             this.verifyEqual(oef.fqfilename, fullfile(this.sessionPath, 'fsl', 'oefIndex_737353fwhh_on_T1.nii.gz'));
-            %oef = oef.blurred(mlpet.PETRegistry.instance.petPointSpread);
+            %oef = oef.blurred(mlsiemens.ECATRegistry.instance.petPointSpread);
             oef.view(this.T1);
             oef.save;
         end
