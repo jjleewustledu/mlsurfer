@@ -75,10 +75,10 @@ classdef InnerMGH < handle & mlfourd.AbstractInnerImagingFormat
             import mlfourd.* mlfourdfp.* mlsurfer.*;  
             hdr_ = this.hdr;
             switch (this.filesuffix)
-                case FourdfpInfo.SUPPORTED_EXT   
+                case mlfourd.FourdfpInfo.SUPPORTED_EXT   
                     %deleteExisting([this.fqfileprefix '.4dfp.*']);
-                    [this.img_,hdr_] = FourdfpInfo.exportFreeSurferSpaceToFourdfp(this.img_, hdr_);
-                    info = FourdfpInfo(this.fqfilename, ...
+                    [this.img_,hdr_] = mlfourd.FourdfpInfo.exportFreeSurferSpaceToFourdfp(this.img_, hdr_);
+                    info = mlfourd.FourdfpInfo(this.fqfilename, ...
                         'datatype', this.datatype, 'ext', this.imagingInfo.ext, 'filetype', this.imagingInfo.filetype, 'N', this.N , 'untouch', false, 'hdr', hdr_);      
                     this = InnerFourdfp(info, ...
                        'creationDate', this.creationDate, 'img', this.img, 'label', this.label, 'logger', this.logger, ...
