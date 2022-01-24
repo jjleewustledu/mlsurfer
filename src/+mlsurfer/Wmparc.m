@@ -53,6 +53,14 @@ classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             form.fileprefix = strcat(form.fileprefix, '_', this.num_to_label(indices));
             ic = mlfourd.ImagingContext2(form);
         end
+        function ic = select_gray(this)
+            ic = this.wmparc_.numge(1000) & this.wmparc_.numle(2035);
+            ic.fileprefix = strcat(this.wmparc_.fileprefix, '_gray');
+        end
+        function ic = select_cortex(this)
+            ic = this.wmparc_.numge(1000) & this.wmparc_.numle(14175);
+            ic.fileprefix = strcat(this.wmparc_.fileprefix, '_cortex');
+        end
     end
 
     %% PROTECTED
