@@ -20,7 +20,7 @@ classdef SurferFacade
  			%  Usage:  this = SurferFacade()
 
             ip = inputParser;
-            addParameter(ip, 'sessionData', [], @(x) isa(x, 'mlpipeline.SessionData'));
+            addParameter(ip, 'sessionData', [], @(x) isa(x, 'mlpipeline.ISessionData'));
             parse(ip, varargin{:});
             
             this.sessionData = ip.Results.sessionData;

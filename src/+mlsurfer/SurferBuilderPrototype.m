@@ -330,7 +330,7 @@ classdef SurferBuilderPrototype < mlsurfer.SurferBuilder
             addParameter(ip, 'roi',            [], @(x) isa(x, 'mlfourd.ImagingContext'));
             addParameter(ip, 'segmentation',   [], @(x) isa(x, 'mlfourd.ImagingContext'));
             addParameter(ip, 'segstats',       [], @ischar);
-            addParameter(ip, 'sessionData',    [], @(x) isa(x, 'mlpipeline.SessionData'));
+            addParameter(ip, 'sessionData',    [], @(x) isa(x, 'mlpipeline.ISessionData'));
             addParameter(ip, 'sessionPath',    [], @ischar);
             addParameter(ip, 'structural',     [], @(x) isa(x, 'mlfourd.ImagingContext'));
             addParameter(ip, 'targetId', ...

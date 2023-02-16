@@ -48,7 +48,7 @@ classdef SurferVisitor < mlpipeline.PipelineVisitor0
             addOptional(ip, 'fn2', SurferVisitor.niigzFilename(fn), @ischar);
             parse(ip, fn, varargin{:});            
             
-            fprintf('mlpipeline.SessionData.mri_convert is working on %s\n', ip.Results.fn);
+            fprintf('mlsurfer.SurferVisitor.mri_convert is working on %s\n', ip.Results.fn);
             mlpipeline.PipelineVisitor.cmd('mri_convert', ip.Results.fn, ip.Results.fn2);
             fn = ip.Results.fn2;
         end
