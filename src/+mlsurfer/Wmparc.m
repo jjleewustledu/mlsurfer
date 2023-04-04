@@ -25,18 +25,18 @@ classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 this = mlsurfer.Wmparc(bids.wmparc_ic);
                 return
             end
-            if endsWith(obj.fileprefix, bids.flair_ic.fileprefix) || ...
-               endsWith(obj.fileprefix, '_flair', 'IgnoreCase', true)
-                obj = bids.flair_ic;
-            end
+            %if endsWith(obj.fileprefix, bids.flair_ic.fileprefix) || ...
+            %   endsWith(obj.fileprefix, '_flair', 'IgnoreCase', true)
+            %    obj = bids.flair_ic;
+            %end
             if endsWith(obj.fileprefix, bids.t1w_ic.fileprefix)|| ...
                endsWith(obj.fileprefix, '_T1w', 'IgnoreCase', true)
                 obj = bids.t1w_ic;
             end
-            if endsWith(obj.fileprefix, bids.t2w_ic.fileprefix)|| ...
-               endsWith(obj.fileprefix, '_T2w', 'IgnoreCase', true)
-                obj = bids.t2w_ic;
-            end
+            %if endsWith(obj.fileprefix, bids.t2w_ic.fileprefix)|| ...
+            %   endsWith(obj.fileprefix, '_T2w', 'IgnoreCase', true)
+            %    obj = bids.t2w_ic;
+            %end
 
             % otherwise build this with wmparc_on_obj
             wmparc_on_obj = mlfourd.ImagingContext2( ...
