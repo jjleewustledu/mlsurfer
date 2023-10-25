@@ -1,4 +1,4 @@
-classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
+classdef Wmparc < handle & mlsystem.IHandle
     %% To use native wmparc from FreeSurfer, this = mlsurfer.Wmparc.createFromBids(bids).
     %  To generate wmparc on an imaging obj, this = mlsurfer.Wmparc.createCoregisteredFromBids(bids).
     %  this.product provides sought wmparc implementation as mlfourd.ImagingContext2.
@@ -68,10 +68,7 @@ classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         wmparc
     end
 
-    methods
-
-        %% GET
-
+    methods %% GET
         function g = get.product(this)
             g = this.wmparc;
         end
@@ -81,9 +78,9 @@ classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         function g = get.wmparc(this)
             g = this.wmparc_;
         end
+    end
 
-        %%
-
+    methods
         function this = Wmparc(varargin)
             %  Args:
             %      obj (any): understood by mlfourd.ImagingContext2.  Must reference a file representing wmparc.
@@ -99,6 +96,9 @@ classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 strrep(this.wmparc_.fqfn, 'wmparc', 'T1'));
         end
 
+        function initialize(~, varargin)
+            error("mlsurfer:NotImplementedError", stackstr())
+        end
         function n = label_to_num(~, lbl)
             switch lbl
                 case 'brainstem+'
@@ -226,9 +226,27 @@ classdef Wmparc < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
     end
 
+    methods (Static)
+        function this = create(varargin)
+            this = mlsurfer.Wmparc(varargin{:});
+        end
+        function this = create_for_kinetics(opts)
+            arguments
+                opts.bids_med mlpipeline.ImagingMediator {mustBeNonempty}
+                opts.representation = []
+            end
+
+            this = mlsurfer.Wmparc(opts.bids_med.wmparc_ic);
+            this.bids_med_ = opts.bids_med;
+            this.representation_ = opts.representation;
+        end
+    end
+
     %% PROTECTED
 
     properties (Access = protected)
+        bids_med_
+        representation_
         T1_
         wmparc_
     end
