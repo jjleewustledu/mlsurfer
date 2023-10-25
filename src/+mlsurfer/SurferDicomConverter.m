@@ -140,7 +140,9 @@ classdef SurferDicomConverter < mlfourd.AbstractDicomConverter
                     assert(   ischar(unpackInfo(n).name    ) && ~isempty(unpackInfo(n).name));
                     niiList = sprintf(' -run %i %s %s %s ', ...
                               unpackInfo(n).index, unpackInfo(n).seq_type, unpackInfo(n).ext, unpackInfo(n).name);     
-                    [~,r_n] = mlbash(['unpacksdcmdir -src ' dcmdir ' -targ ' targdir ' -fsfast ' niiList]);
+
+                    cmd = sprintf('unpacksdcmdir -src %s -targ %s -fsfast %s', dcmdir, targdir, niiList);
+                    [~,r_n] = mlbash(cmd);
                     cal.add(r_n);
                 catch ME
                     handwarning(ME, r_n);
@@ -160,7 +162,8 @@ classdef SurferDicomConverter < mlfourd.AbstractDicomConverter
                 s = 0; r = cell2str(mlio.TextIO.textfileToCell(fil));
                 return
             end
-            [s,r] = mlbash(['unpacksdcmdir -src ' dcmdir ' -targ ' targdir ' -scanonly ' infofile]);
+            cmd = sprintf('unpacksdcmdir -src %s -targ %s -scanonly %s', dcmdir, targdir, infofile);
+            [s,r] = mlbash(cmd);
         end 
     end % static methods
     

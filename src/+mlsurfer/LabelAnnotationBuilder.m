@@ -46,7 +46,7 @@ classdef LabelAnnotationBuilder
 	methods         
         function [s,r] = mri_annotation2label(this)
             if (~lexist(this.labelPath, 'dir'))
-                mlbash(['mkdir -p ' this.labelPath]);
+                mlbash(strcat('mkdir -p ', this.labelPath));
             end
             for h = 1:length(this.hemis)
                 [s,r] = this.surferBash( ...
@@ -56,7 +56,7 @@ classdef LabelAnnotationBuilder
         end
         function [s,r] = mris_label2annot(this)
             if (~lexist(this.labelPath, 'dir'))
-                mlbash(['mkdir -p ' this.labelPath]);
+                mlbash(strcat('mkdir -p ', this.labelPath));
             end
             for h = 1:length(this.hemis)
                 [s,r] = mlbash( ...
