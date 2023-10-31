@@ -7,59 +7,6 @@ classdef Wmparc < handle & mlsystem.IHandle
     %  Developed on Matlab 9.11.0.1837725 (R2021b) Update 2 for MACI64.  Copyright 2022 John J. Lee.
     
     methods (Static)
-        function this = createFromBids(bids)
-            assert(isprop(bids, 'wmparc_ic'))
-            this = mlsurfer.Wmparc(bids.wmparc_ic);
-        end
-        function this = createCoregisteredFromBids(bids, obj)
-            %  Args:
-            %      obj (any): understood by mlfourd.ImagingContext2, able to be co-registered with T1.mgz
-
-            assert(isprop(bids, 'derivAnatPath'))
-            assert(isprop(bids, 'T1_ic'))
-            obj = mlfourd.ImagingContext2(obj);
-            assert(isfile(obj.fqfn))
-            
-            % seek out more direct coregistrations
-            if endsWith(obj.fileprefix, strcat('_', bids.T1_ic.fileprefix))                
-                this = mlsurfer.Wmparc(bids.wmparc_ic);
-                return
-            end
-            %if endsWith(obj.fileprefix, bids.flair_ic.fileprefix) || ...
-            %   endsWith(obj.fileprefix, '_flair', 'IgnoreCase', true)
-            %    obj = bids.flair_ic;
-            %end
-            if endsWith(obj.fileprefix, bids.t1w_ic.fileprefix)|| ...
-               endsWith(obj.fileprefix, '_T1w', 'IgnoreCase', true)
-                obj = bids.t1w_ic;
-            end
-            %if endsWith(obj.fileprefix, bids.t2w_ic.fileprefix)|| ...
-            %   endsWith(obj.fileprefix, '_T2w', 'IgnoreCase', true)
-            %    obj = bids.t2w_ic;
-            %end
-
-            % otherwise build this with wmparc_on_obj
-            wmparc_on_obj = mlfourd.ImagingContext2( ...
-                fullfile(bids.derivAnatPath, strcat(bids.wmparc_ic.fileprefix, '_on_', obj.filename)));
-            if ~isfile(wmparc_on_obj.fqfn)
-                omat = fullfile(bids.derivAnatPath, strcat(bids.T1_ic.fileprefix, '_on_', obj.fileprefix, '.mat'));
-                out  = fullfile(bids.derivAnatPath, strcat(bids.T1_ic.fileprefix, '_on_', obj.filename));
-                f = mlfsl.Flirt( ...
-                    'in', bids.T1_ic, ...
-                    'ref', obj, ...
-                    'omat', omat, ...
-                    'out', out, ...
-                    'cost', 'corratio', 'searchrx', 90, 'interp', 'trilinear', ...
-                    'noclobber', true);
-                f.flirt(); % T1 -> obj
-                f.in = bids.wmparc_ic;
-                f.ref = obj;
-                f.out = wmparc_on_obj;
-                f.interp = 'nearestneighbour';
-                f.applyXfm();
-            end
-            this = mlsurfer.Wmparc(wmparc_on_obj);
-        end
     end
 
     properties (Dependent)
@@ -239,6 +186,51 @@ classdef Wmparc < handle & mlsystem.IHandle
             this = mlsurfer.Wmparc(opts.bids_med.wmparc_ic);
             this.bids_med_ = opts.bids_med;
             this.representation_ = opts.representation;
+        end
+        function this = createCoregisteredFromBids(bids, obj)
+            %  Args:
+            %      obj (any): understood by mlfourd.ImagingContext2, able to be co-registered with T1.mgz
+
+            assert(isprop(bids, 'derivAnatPath'))
+            assert(isprop(bids, 'T1_ic'))
+            obj = mlfourd.ImagingContext2(obj);
+            assert(isfile(obj.fqfn))
+            
+            % seek out more direct coregistrations
+            if endsWith(obj.fileprefix, strcat('_', bids.T1_ic.fileprefix))                
+                this = mlsurfer.Wmparc(bids.wmparc_ic);
+                return
+            end
+            if endsWith(obj.fileprefix, bids.t1w_ic.fileprefix)|| ...
+               endsWith(obj.fileprefix, '_T1w', 'IgnoreCase', true)
+                obj = bids.t1w_ic;
+            end
+
+            % otherwise build this with wmparc_on_obj
+            wmparc_on_obj = mlfourd.ImagingContext2( ...
+                fullfile(bids.derivAnatPath, strcat(bids.wmparc_ic.fileprefix, '_on_', obj.filename)));
+            if ~isfile(wmparc_on_obj.fqfn)
+                omat = fullfile(bids.derivAnatPath, strcat(bids.T1_ic.fileprefix, '_on_', obj.fileprefix, '.mat'));
+                out  = fullfile(bids.derivAnatPath, strcat(bids.T1_ic.fileprefix, '_on_', obj.filename));
+                f = mlfsl.Flirt( ...
+                    'in', bids.T1_ic, ...
+                    'ref', obj, ...
+                    'omat', omat, ...
+                    'out', out, ...
+                    'cost', 'corratio', 'searchrx', 90, 'interp', 'trilinear', ...
+                    'noclobber', true);
+                f.flirt(); % T1 -> obj
+                f.in = bids.wmparc_ic;
+                f.ref = obj;
+                f.out = wmparc_on_obj;
+                f.interp = 'nearestneighbour';
+                f.applyXfm();
+            end
+            this = mlsurfer.Wmparc(wmparc_on_obj);
+        end
+        function this = createFromBids(bids)
+            assert(isprop(bids, 'wmparc_ic'))
+            this = mlsurfer.Wmparc(bids.wmparc_ic);
         end
     end
 
