@@ -78,6 +78,8 @@ classdef Wmparc < handle & mlsystem.IHandle
                     n = [18 54];
                 case 'venous'
                     n = [40 6000]; % co-opting right cerebral exterior
+                case 'ponsvermis'
+                    n = [172 174];
                 otherwise
                     n = 0;
             end
