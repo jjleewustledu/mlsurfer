@@ -80,6 +80,8 @@ classdef Wmparc < handle & mlsystem.IHandle
                     n = [40 6000]; % co-opting right cerebral exterior
                 case 'ponsvermis'
                     n = [172 174];
+                case 'centrumsemiovale'
+                    n = [5001 5002];
                 otherwise
                     n = 0;
             end
@@ -111,7 +113,12 @@ classdef Wmparc < handle & mlsystem.IHandle
                 z(img == i) = 1;
             end
             form.img = z;
-            form.fileprefix = strcat(form.fileprefix, '_', this.num_to_label(indices));
+            if length(indices) < 10
+                form.fileprefix = strcat(form.fileprefix, '_', this.num_to_label(indices));
+            else
+                form.fileprefix = strcat(form.fileprefix, '_', ...
+                    string(indices(1)), '-', string(indices(end)));
+            end   
             ic = mlfourd.ImagingContext2(form);
         end
         function ic = select_cortex(this)
@@ -190,6 +197,8 @@ classdef Wmparc < handle & mlsystem.IHandle
             this.representation_ = opts.representation;
         end
         function this = createCoregisteredFromBids(bids, obj)
+            %% Creates an instance of Wmparc in the space of the imaging obj.
+            %  The imaging obj must have anatomical features which flirt can co-register with Freesurfer's T1.mgz.
             %  Args:
             %      obj (any): understood by mlfourd.ImagingContext2, able to be co-registered with T1.mgz
 
@@ -198,22 +207,18 @@ classdef Wmparc < handle & mlsystem.IHandle
             obj = mlfourd.ImagingContext2(obj);
             assert(isfile(obj.fqfn))
             
-            % seek out more direct coregistrations
-            if endsWith(obj.fileprefix, strcat('_', bids.T1_ic.fileprefix))                
+            % return if obj is already coregistered
+            if endsWith(obj.fileprefix, strcat('_on_', bids.T1_ic.fileprefix))                
                 this = mlsurfer.Wmparc(bids.wmparc_ic);
                 return
-            end
-            if endsWith(obj.fileprefix, bids.t1w_ic.fileprefix)|| ...
-               endsWith(obj.fileprefix, '_T1w', 'IgnoreCase', true)
-                obj = bids.t1w_ic;
             end
 
             % otherwise build this with wmparc_on_obj
             wmparc_on_obj = mlfourd.ImagingContext2( ...
-                fullfile(bids.derivAnatPath, strcat(bids.wmparc_ic.fileprefix, '_on_', obj.filename)));
+                fullfile(obj.filepath, strcat(bids.wmparc_ic.fileprefix, '_on_', obj.filename)));
             if ~isfile(wmparc_on_obj.fqfn)
-                omat = fullfile(bids.derivAnatPath, strcat(bids.T1_ic.fileprefix, '_on_', obj.fileprefix, '.mat'));
-                out  = fullfile(bids.derivAnatPath, strcat(bids.T1_ic.fileprefix, '_on_', obj.filename));
+                omat = fullfile(obj.filepath, strcat(bids.T1_ic.fileprefix, '_on_', obj.fileprefix, '.mat'));
+                out  = fullfile(obj.filepath, strcat(bids.T1_ic.fileprefix, '_on_', obj.filename));
                 f = mlfsl.Flirt( ...
                     'in', bids.T1_ic, ...
                     'ref', obj, ...
@@ -221,7 +226,9 @@ classdef Wmparc < handle & mlsystem.IHandle
                     'out', out, ...
                     'cost', 'corratio', 'searchrx', 90, 'interp', 'trilinear', ...
                     'noclobber', true);
-                f.flirt(); % T1 -> obj
+                if ~isfile(omat)
+                    f.flirt(); % T1 -> obj
+                end
                 f.in = bids.wmparc_ic;
                 f.ref = obj;
                 f.out = wmparc_on_obj;
@@ -250,6 +257,12 @@ classdef Wmparc < handle & mlsystem.IHandle
             %%  See also web(fullfile(docroot, 'matlab/ref/matlab.mixin.copyable-class.html'))
             
             that = copyElement@matlab.mixin.Copyable(this);
+            if ishandle(this.bids_med_)
+                that.bids_med_ = copy(this.bids_med_);
+            end
+            if ishandle(this.representation_)
+                that.representation_ = copy(this.representation_);
+            end
             if ishandle(this.T1_)
                 that.T1_ = copy(this.T1_);
             end
